@@ -1,0 +1,24 @@
+name: feature
+description: Generate a new feature with MVC architecture and Redux integration
+version: 0.1.0+1
+
+environment:
+  mason: ">=0.1.0 <1.0.0"
+
+vars:
+  name:
+    type: string
+    description: The name of the feature (e.g., profile, settings)
+    prompt: What is the name of the feature?
+  
+  model_fields:
+    type: list
+    description: List of model fields (name:type format)
+    prompt: Enter model fields (name:type, press enter for none)
+    default: []
+  
+  has_api:
+    type: boolean
+    description: Does this feature interact with an API?
+    prompt: Does this feature need API integration?
+    default: true
