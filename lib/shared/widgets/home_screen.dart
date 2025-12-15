@@ -5,6 +5,7 @@ import '../../core/constants/app_theme.dart';
 import '../../core/router/app_router.dart';
 import '../../features/auth/models/auth_models.dart' show User;
 import '../../features/theme/widgets/theme_switcher.dart';
+import 'app_navigation_drawer.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({required this.user, required this.onLogout, super.key});
@@ -14,10 +15,14 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWideScreen = MediaQuery.of(context).size.width > 600;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppConstants.appName),
         centerTitle: true,
+        // Only show hamburger menu on mobile/tablet
+        automaticallyImplyLeading: !isWideScreen,
         actions: [
           const ThemeSwitcher(
             type: ThemeSwitcherType.iconButton,
@@ -59,90 +64,180 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(AppTheme.mediumSpacing),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Welcome Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(AppTheme.mediumSpacing),
-                child: Column(
-                  children: [
-                    const CircleAvatar(
-                      radius: 40,
-                      backgroundColor: AppTheme.primaryColor,
-                      child: Icon(
-                        Icons.person,
-                        size: 40,
-                        color: AppTheme.onPrimaryColor,
+      // Show drawer on mobile, navigation rail on wide screens
+      drawer: isWideScreen
+          ? null
+          : AppNavigationDrawer(
+              user: user,
+              onLogout: onLogout,
+              onShowComingSoon: () => _showComingSoon(context),
+              onShowAboutDialog: () => _showAboutDialog(context),
+            ),
+      body: isWideScreen
+          ? Row(
+              children: [
+                _buildNavigationRail(context),
+                const VerticalDivider(width: 1),
+                Expanded(child: _buildMainContent(context)),
+              ],
+            )
+          : _buildMainContent(context),
+    );
+  }
+
+  Widget _buildMainContent(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppTheme.mediumSpacing),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Welcome Card
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppTheme.mediumSpacing),
+              child: Column(
+                children: [
+                  const CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppTheme.primaryColor,
+                    child: Icon(
+                      Icons.person,
+                      size: 40,
+                      color: AppTheme.onPrimaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.mediumSpacing),
+                  Text('Welcome back!', style: AppTheme.headingStyle),
+                  if (user?.name != null) ...[
+                    const SizedBox(height: AppTheme.smallSpacing),
+                    Text(user!.name!, style: AppTheme.subHeadingStyle),
+                  ],
+                  if (user?.email != null) ...[
+                    const SizedBox(height: AppTheme.smallSpacing),
+                    Text(
+                      user!.email,
+                      style: AppTheme.bodyStyle.copyWith(
+                        color: Colors.grey[600],
                       ),
                     ),
-                    const SizedBox(height: AppTheme.mediumSpacing),
-                    Text('Welcome back!', style: AppTheme.headingStyle),
-                    if (user?.name != null) ...[
-                      const SizedBox(height: AppTheme.smallSpacing),
-                      Text(user!.name!, style: AppTheme.subHeadingStyle),
-                    ],
-                    if (user?.email != null) ...[
-                      const SizedBox(height: AppTheme.smallSpacing),
-                      Text(
-                        user!.email,
-                        style: AppTheme.bodyStyle.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
                   ],
-                ),
-              ),
-            ),
-            const SizedBox(height: AppTheme.largeSpacing),
-
-            // Features Grid
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: AppTheme.mediumSpacing,
-                mainAxisSpacing: AppTheme.mediumSpacing,
-                children: [
-                  _buildFeatureCard(
-                    context,
-                    'Counter Demo',
-                    Icons.add_circle,
-                    'Try the counter with Redux',
-                    () => context.goToCounter(),
-                  ),
-                  _buildFeatureCard(
-                    context,
-                    'Profile',
-                    Icons.person,
-                    'View your profile',
-                    () => _showComingSoon(
-                      context,
-                    ), // Profile route not implemented yet
-                  ),
-                  _buildFeatureCard(
-                    context,
-                    'Settings',
-                    Icons.settings,
-                    'App preferences',
-                    () => _showComingSoon(context),
-                  ),
-                  _buildFeatureCard(
-                    context,
-                    'About',
-                    Icons.info,
-                    'About this template',
-                    () => _showAboutDialog(context),
-                  ),
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: AppTheme.largeSpacing),
+
+          // Features Grid
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: AppTheme.mediumSpacing,
+              mainAxisSpacing: AppTheme.mediumSpacing,
+              children: [
+                _buildFeatureCard(
+                  context,
+                  'Counter Demo',
+                  Icons.add_circle,
+                  'Try the counter with Redux',
+                  () => context.goToCounter(),
+                ),
+                _buildFeatureCard(
+                  context,
+                  'Profile',
+                  Icons.person,
+                  'View your profile',
+                  () => _showComingSoon(context),
+                ),
+                _buildFeatureCard(
+                  context,
+                  'Settings',
+                  Icons.settings,
+                  'App preferences',
+                  () => _showComingSoon(context),
+                ),
+                _buildFeatureCard(
+                  context,
+                  'About',
+                  Icons.info,
+                  'About this template',
+                  () => _showAboutDialog(context),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavigationRail(BuildContext context) {
+    return NavigationRail(
+      selectedIndex: 0, // Home is selected
+      onDestinationSelected: (index) {
+        switch (index) {
+          case 0:
+            // Already on home
+            break;
+          case 1:
+            context.goToCounter();
+            break;
+          case 2:
+            _showComingSoon(context);
+            break;
+          case 3:
+            _showAboutDialog(context);
+            break;
+        }
+      },
+      labelType: NavigationRailLabelType.selected,
+      leading: Column(
+        children: [
+          const SizedBox(height: 8),
+          CircleAvatar(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            child: Icon(
+              Icons.person,
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+      trailing: Expanded(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+              onPressed: () => _showLogoutDialog(context, onLogout),
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
+      destinations: const [
+        NavigationRailDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home),
+          label: Text('Home'),
+        ),
+        NavigationRailDestination(
+          icon: Icon(Icons.add_circle_outline),
+          selectedIcon: Icon(Icons.add_circle),
+          label: Text('Counter'),
+        ),
+        NavigationRailDestination(
+          icon: Icon(Icons.person_outline),
+          selectedIcon: Icon(Icons.person),
+          label: Text('Profile'),
+        ),
+        NavigationRailDestination(
+          icon: Icon(Icons.info_outline),
+          selectedIcon: Icon(Icons.info),
+          label: Text('About'),
+        ),
+      ],
     );
   }
 

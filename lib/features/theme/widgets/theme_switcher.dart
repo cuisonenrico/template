@@ -1,16 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:async_redux/async_redux.dart';
-import '../../../core/store/app_state.dart';
+import 'package:flutter/material.dart';
+
 import '../../../core/constants/app_theme.dart';
+import '../../../core/store/app_state.dart';
 import '../controllers/theme_actions.dart';
 
 /// A versatile theme switcher widget that can be used as a button, switch, or dropdown
 class ThemeSwitcher extends StatelessWidget {
-  const ThemeSwitcher({
-    super.key,
-    this.type = ThemeSwitcherType.iconButton,
-    this.showLabel = true,
-  });
+  const ThemeSwitcher({super.key, this.type = ThemeSwitcherType.iconButton, this.showLabel = true});
 
   final ThemeSwitcherType type;
   final bool showLabel;
@@ -39,11 +36,7 @@ enum ThemeSwitcherType { iconButton, dropdown, segmentedButton, listTile }
 
 /// ViewModel for theme switcher
 class ThemeSwitcherVm extends Vm {
-  ThemeSwitcherVm({
-    required this.currentTheme,
-    required this.isLoading,
-    required this.onThemeChanged,
-  });
+  ThemeSwitcherVm({required this.currentTheme, required this.isLoading, required this.onThemeChanged});
 
   final AppThemeMode currentTheme;
   final bool isLoading;
@@ -61,8 +54,7 @@ class ThemeSwitcherVm extends Vm {
   int get hashCode => currentTheme.hashCode ^ isLoading.hashCode;
 }
 
-class ThemeSwitcherVmFactory
-    extends VmFactory<AppState, Widget, ThemeSwitcherVm> {
+class ThemeSwitcherVmFactory extends VmFactory<AppState, Widget, ThemeSwitcherVm> {
   @override
   ThemeSwitcherVm fromStore() {
     return ThemeSwitcherVm(
@@ -93,15 +85,11 @@ class _IconButtonSwitcher extends StatelessWidget {
                   final nextTheme = _getNextTheme(vm.currentTheme);
                   vm.onThemeChanged(nextTheme);
                 },
-          tooltip:
-              'Switch to ${_getNextTheme(vm.currentTheme).displayName} theme',
+          tooltip: 'Switch to ${_getNextTheme(vm.currentTheme).displayName} theme',
         ),
         if (showLabel) ...[
           const SizedBox(width: 4),
-          Text(
-            vm.currentTheme.displayName,
-            style: Theme.of(context).textTheme.labelMedium,
-          ),
+          Text(vm.currentTheme.displayName, style: Theme.of(context).textTheme.labelMedium),
         ],
       ],
     );
@@ -131,10 +119,7 @@ class _DropdownSwitcher extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (showLabel) ...[
-          Text('Theme: ', style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(width: 8),
-        ],
+        if (showLabel) ...[Text('Theme: ', style: Theme.of(context).textTheme.labelMedium), const SizedBox(width: 8)],
         DropdownButton<AppThemeMode>(
           value: vm.currentTheme,
           onChanged: vm.isLoading
@@ -149,11 +134,7 @@ class _DropdownSwitcher extends StatelessWidget {
               value: mode,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(mode.icon, size: 16),
-                  const SizedBox(width: 8),
-                  Text(mode.displayName),
-                ],
+                children: [Icon(mode.icon, size: 16), const SizedBox(width: 8), Text(mode.displayName)],
               ),
             );
           }).toList(),
@@ -176,17 +157,10 @@ class _SegmentedButtonSwitcher extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (showLabel) ...[
-          Text('Theme', style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(height: 8),
-        ],
+        if (showLabel) ...[Text('Theme', style: Theme.of(context).textTheme.labelMedium), const SizedBox(height: 8)],
         SegmentedButton<AppThemeMode>(
           segments: AppThemeMode.values.map((mode) {
-            return ButtonSegment<AppThemeMode>(
-              value: mode,
-              icon: Icon(mode.icon),
-              label: Text(mode.displayName),
-            );
+            return ButtonSegment<AppThemeMode>(value: mode, icon: Icon(mode.icon), label: Text(mode.displayName));
           }).toList(),
           selected: {vm.currentTheme},
           onSelectionChanged: vm.isLoading
@@ -214,24 +188,25 @@ class _ListTileSwitcher extends StatelessWidget {
       leading: Icon(vm.currentTheme.icon),
       title: const Text('Theme'),
       subtitle: Text(vm.currentTheme.displayName),
-      children: AppThemeMode.values.map((mode) {
-        return ListTile(
-          leading: Icon(mode.icon),
-          title: Text(mode.displayName),
-          trailing: Radio<AppThemeMode>(
-            value: mode,
-            groupValue: vm.currentTheme,
-            onChanged: vm.isLoading
-                ? null
-                : (AppThemeMode? value) {
-                    if (value != null) {
-                      vm.onThemeChanged(value);
-                    }
-                  },
+      children: [
+        RadioGroup<AppThemeMode>(
+          groupValue: vm.currentTheme,
+          onChanged: (AppThemeMode? value) {
+            if (!vm.isLoading && value != null) {
+              vm.onThemeChanged(value);
+            }
+          },
+          child: Column(
+            children: AppThemeMode.values.map((mode) {
+              return RadioListTile<AppThemeMode>(
+                value: mode,
+                secondary: Icon(mode.icon),
+                title: Text(mode.displayName),
+              );
+            }).toList(),
           ),
-          onTap: vm.isLoading ? null : () => vm.onThemeChanged(mode),
-        );
-      }).toList(),
+        ),
+      ],
     );
   }
 }
