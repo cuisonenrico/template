@@ -11,6 +11,7 @@ class LoginVm extends Vm {
     required this.error,
     required this.onClearError,
     required this.onLogin,
+    required this.onGoogleSignIn,
   });
 
   final bool isLoading;
@@ -18,6 +19,7 @@ class LoginVm extends Vm {
   final String? error;
   final VoidCallback onClearError;
   final Function(String email, String password) onLogin;
+  final VoidCallback onGoogleSignIn;
 
   @override
   bool operator ==(Object other) =>
@@ -43,6 +45,7 @@ class LoginVmFactory extends VmFactory<AppState, Widget, LoginVm> {
       onClearError: () => dispatch(ClearAuthErrorAction()),
       onLogin: (email, password) =>
           dispatch(LoginAction(email: email, password: password)),
+      onGoogleSignIn: () => dispatch(GoogleSignInAction()),
     );
   }
 }

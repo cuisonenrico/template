@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:async_redux/async_redux.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'core/store/app_state.dart';
 import 'core/config/app_flavor.dart';
 import 'core/constants/app_theme.dart';
@@ -17,6 +18,9 @@ void mainCommon(AppFlavor flavor) async {
 
   // Set flavor
   AppFlavor.setFlavor(flavor);
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
 
   // Initialize logger
   AppLogger().init();
@@ -69,7 +73,7 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeMode.themeMode,
-            routerConfig: AppRouter.router,
+            routerConfig: AppRouter.createRouter(store),
             debugShowCheckedModeBanner: !AppFlavor.current.isProduction,
           );
         },
