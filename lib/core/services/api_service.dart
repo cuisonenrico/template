@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import '../constants/app_constants.dart';
+import 'package:template/core/constants/app_constants.dart';
+import '../config/app_flavor.dart';
 import '../utils/storage_helper.dart';
+import '../utils/app_logger.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -10,6 +12,7 @@ class ApiService {
   ApiService._internal();
 
   final http.Client _client = http.Client();
+  final _logger = AppLogger();
 
   Future<Map<String, String>> _getHeaders({bool requiresAuth = false}) async {
     final headers = {
@@ -28,16 +31,33 @@ class ApiService {
   }
 
   Future<ApiResponse> get(String endpoint, {bool requiresAuth = false}) async {
+    final stopwatch = Stopwatch()..start();
+    final url = '${AppFlavor.current.apiBaseUrl}$endpoint';
+
     try {
       final headers = await _getHeaders(requiresAuth: requiresAuth);
-      final response = await _client
-          .get(Uri.parse('${AppConstants.baseUrl}$endpoint'), headers: headers)
-          .timeout(
-            const Duration(milliseconds: AppConstants.connectionTimeout),
-          );
 
-      return _handleResponse(response);
-    } catch (e) {
+      _logger.apiRequest('GET', url);
+
+      final response = await _client
+          .get(Uri.parse(url), headers: headers)
+          .timeout(const Duration(milliseconds: 30000));
+
+      stopwatch.stop();
+      final result = _handleResponse(response);
+
+      _logger.apiResponse(
+        'GET',
+        url,
+        response.statusCode,
+        result.data,
+        duration: stopwatch.elapsed,
+      );
+
+      return result;
+    } catch (e, stackTrace) {
+      stopwatch.stop();
+      _logger.error('GET $url failed', e, stackTrace);
       return ApiResponse(success: false, message: _getErrorMessage(e));
     }
   }
@@ -47,20 +67,33 @@ class ApiService {
     Map<String, dynamic> data, {
     bool requiresAuth = false,
   }) async {
+    final stopwatch = Stopwatch()..start();
+    final url = '${AppFlavor.current.apiBaseUrl}$endpoint';
+
     try {
       final headers = await _getHeaders(requiresAuth: requiresAuth);
-      final response = await _client
-          .post(
-            Uri.parse('${AppConstants.baseUrl}$endpoint'),
-            headers: headers,
-            body: json.encode(data),
-          )
-          .timeout(
-            const Duration(milliseconds: AppConstants.connectionTimeout),
-          );
 
-      return _handleResponse(response);
-    } catch (e) {
+      _logger.apiRequest('POST', url, data: data);
+
+      final response = await _client
+          .post(Uri.parse(url), headers: headers, body: jsonEncode(data))
+          .timeout(const Duration(milliseconds: 30000));
+
+      stopwatch.stop();
+      final result = _handleResponse(response);
+
+      _logger.apiResponse(
+        'POST',
+        url,
+        response.statusCode,
+        result.data,
+        duration: stopwatch.elapsed,
+      );
+
+      return result;
+    } catch (e, stackTrace) {
+      stopwatch.stop();
+      _logger.error('POST $url failed', e, stackTrace);
       return ApiResponse(success: false, message: _getErrorMessage(e));
     }
   }
@@ -70,20 +103,35 @@ class ApiService {
     Map<String, dynamic> data, {
     bool requiresAuth = false,
   }) async {
+    final stopwatch = Stopwatch()..start();
+    final url = '${AppConstants.baseUrl}$endpoint';
+
     try {
       final headers = await _getHeaders(requiresAuth: requiresAuth);
+
+      _logger.apiRequest('PUT', url, data: data);
+
       final response = await _client
-          .put(
-            Uri.parse('${AppConstants.baseUrl}$endpoint'),
-            headers: headers,
-            body: json.encode(data),
-          )
+          .put(Uri.parse(url), headers: headers, body: json.encode(data))
           .timeout(
             const Duration(milliseconds: AppConstants.connectionTimeout),
           );
 
-      return _handleResponse(response);
-    } catch (e) {
+      stopwatch.stop();
+      final result = _handleResponse(response);
+
+      _logger.apiResponse(
+        'PUT',
+        url,
+        response.statusCode,
+        result.data,
+        duration: stopwatch.elapsed,
+      );
+
+      return result;
+    } catch (e, stackTrace) {
+      stopwatch.stop();
+      _logger.error('PUT $url failed', e, stackTrace);
       return ApiResponse(success: false, message: _getErrorMessage(e));
     }
   }
@@ -92,19 +140,35 @@ class ApiService {
     String endpoint, {
     bool requiresAuth = false,
   }) async {
+    final stopwatch = Stopwatch()..start();
+    final url = '${AppConstants.baseUrl}$endpoint';
+
     try {
       final headers = await _getHeaders(requiresAuth: requiresAuth);
+
+      _logger.apiRequest('DELETE', url);
+
       final response = await _client
-          .delete(
-            Uri.parse('${AppConstants.baseUrl}$endpoint'),
-            headers: headers,
-          )
+          .delete(Uri.parse(url), headers: headers)
           .timeout(
             const Duration(milliseconds: AppConstants.connectionTimeout),
           );
 
-      return _handleResponse(response);
-    } catch (e) {
+      stopwatch.stop();
+      final result = _handleResponse(response);
+
+      _logger.apiResponse(
+        'DELETE',
+        url,
+        response.statusCode,
+        result.data,
+        duration: stopwatch.elapsed,
+      );
+
+      return result;
+    } catch (e, stackTrace) {
+      stopwatch.stop();
+      _logger.error('DELETE $url failed', e, stackTrace);
       return ApiResponse(success: false, message: _getErrorMessage(e));
     }
   }

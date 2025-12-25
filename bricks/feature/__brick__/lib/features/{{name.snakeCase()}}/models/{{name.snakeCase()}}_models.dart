@@ -1,21 +1,29 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hive/hive.dart';
 
 part '{{name.snakeCase()}}_models.freezed.dart';
 part '{{name.snakeCase()}}_models.g.dart';
 
 {{#model_fields.length}}@freezed
+@HiveType(typeId: {{hive_type_id}})
 class {{name.pascalCase()}} with _${{name.pascalCase()}} {
   const factory {{name.pascalCase()}}({
-{{#model_fields}}    required {{type}} {{name}},
+{{#model_fields}}    @HiveField({{index}}) required {{type}} {{name}},
 {{/model_fields}}  }) = _{{name.pascalCase()}};
 
   factory {{name.pascalCase()}}.fromJson(Map<String, dynamic> json) => _${{name.pascalCase()}}FromJson(json);
 }
 
 {{/model_fields.length}}
-{{^model_fields.length}}class {{name.pascalCase()}} {
+{{^model_fields.length}}@HiveType(typeId: {{hive_type_id}})
+class {{name.pascalCase()}} {
+  @HiveField(0)
   final String id;
+  
+  @HiveField(1)
   final String name;
+  
+  @HiveField(2)
   final DateTime createdAt;
 
   const {{name.pascalCase()}}({

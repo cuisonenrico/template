@@ -5,11 +5,14 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+// ignore_for_file: unused_import
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:async_redux/async_redux.dart';
 
 import 'package:template/main.dart';
 import 'package:template/core/store/app_state.dart';
+import 'package:template/main_common.dart';
 
 void main() {
   testWidgets('App loads without crashing', (WidgetTester tester) async {

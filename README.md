@@ -8,11 +8,14 @@ A production-ready Flutter template with basic authentication, MVC architecture,
 - ✅ **MVC Architecture**: Organized code structure with Models, Views, and Controllers
 - ✅ **Async Redux**: Predictable state management with actions and reducers
 - ✅ **API Integration**: HTTP service with error handling and token management
+- ✅ **Hive Database**: Offline-first local database with automatic caching
+- ✅ **Notifications**: Local and push notifications with permission handling
 - ✅ **Persistent Storage**: SharedPreferences for local data storage
-- ✅ **Routing**: Clean route management with named routes
-- ✅ **UI Components**: Reusable widgets and consistent theming
+- ✅ **Routing**: Clean route management with GoRouter
+- ✅ **Material Design 3**: Modern theming with light/dark mode support
+- ✅ **Build Flavors**: Development, staging, and production environments
 - ✅ **Counter Demo**: Sample implementation showing Redux patterns
-- ✅ **Mason Bricks**: Code generation templates for new features
+- ✅ **Mason Bricks**: Fully automated code generation for new features
 
 ## Project Structure
 
@@ -53,7 +56,9 @@ lib/
 
 ## Getting Started
 
-### 1. Clone and Setup
+### 1. Quick Setup (Recommended)
+
+### 2. Manual Setup (Alternative)
 
 ```bash
 # Clone the template
@@ -62,11 +67,25 @@ cd template
 
 # Get dependencies
 flutter pub get
+
+# Rename your app
+dart run rename setAppName --targets ios,android,web --value "Your App"
+dart run rename setBundleId --targets ios,android --value "com.company.app"
+
+# Run code generation
+dart run build_runner build --delete-conflicting-outputs
 ```
 
-### 2. Configuration
+### 3 up your API base URL
+- Create environment configuration files
+- Install Mason CLI (optional)
+- Run code generation automatically
 
-Update the API configuration in `lib/core/constants/app_constants.dart`:
+### 2. Manual Setup (Alternative)
+
+```b3. Configuration
+
+Update the API configuration in `lib/core/constants/app_constants.dart` (if not using setup script):
 
 ```dart
 class AppConstants {
@@ -80,40 +99,19 @@ class AppConstants {
 }
 ```
 
-### 3. Rename Your App (Single Command)
-
-This template includes the `rename` package for easy app renaming across all platforms:
-
-#### Change App Display Name
+Or use environment files (`.env.development`, `.env.staging`, `.env.production`):
 ```bash
-dart run rename setAppName --targets ios,android,web,windows,macos,linux --value "Your App Name"
+API_BASE_URL=https://api.yourapp.com
+APP_NAME=My Awesome App
 ```
 
-#### Change Bundle ID/Package Name
+### 4. Run the App
+
 ```bash
-dart run rename setBundleId --targets ios,android --value "com.yourcompany.yourapp"
-```
+# Using environment configuration
+./scripts/run.sh development
 
-#### Complete Renaming Example
-```bash
-# Rename the app display name
-dart run rename setAppName --targets ios,android,web,windows,macos,linux --value "My Awesome App"
-
-# Change bundle identifier
-dart run rename setBundleId --targets ios,android --value "com.mycompany.myawesomeapp"
-```
-
-#### What Gets Updated Automatically
-
-**App Name Updates:**
-- `pubspec.yaml` - Project name
-- `android/app/src/main/res/values/strings.xml` - Android app name
-- `ios/Runner/Info.plist` - iOS display name
-- `web/index.html` - Web app title
-- `windows/runner/main.cpp` - Windows app name  
-- `macos/Runner/Configs/AppInfo.xcconfig` - macOS app name
-- `linux/my_application.cc` - Linux app name
-
+# Or standard Flutter run
 **Bundle ID Updates:**
 - `android/app/build.gradle` - Android package name
 - `ios/Runner.xcodeproj/project.pbxproj` - iOS bundle identifier
@@ -343,9 +341,68 @@ All Material components include consistent styling:
 - **Dialogs & Sheets** - Rounded corners and appropriate elevation
 - **Navigation** - Consistent theming across all navigation types
 
-## Redux State Management
+## Hive Database - Offline-First Storage
 
-### Adding New State
+### What is Hive?
+
+Hive is a **lightweight, fast NoSQL database** built for Flutter. This template integrates Hive for offline-first data persistence with automatic caching.
+
+### Key Features
+
+- ✅ **Offline-First**: All data is cached locally
+- ✅ **Automatic Caching**: API responses automatically saved
+- ✅ **Fallback Support**: Loads from cache when API fails
+- ✅ **Type-Safe**: Full Dart type safety with Freezed
+- ✅ **Zero Configuration**: Mason brick handles everything
+- ✅ **Fast Performance**: ~1M operations per second
+
+### How It Works
+
+When you generate a feature with Mason, it automatically:
+1. Adds `@HiveType` and `@HiveField` annotations to models
+2. Creates CRUD actions with automatic Hive caching
+3. Registers Hive adapter in `main_common.dart`
+4. Generates Hive adapter via build_runner
+
+**Example offline-first flow:**
+```dart
+// Fetch action tries API first, falls back to Hive cache
+class FetchProductsAction extends ReduxAction<AppState> {
+  @override
+  Future<AppState?> reduce() async {
+    try {
+      // 1. Try API
+      final response = await apiService.get('/products');
+      if (response.success) {
+        await _cacheItems(items);  // Cache in Hive
+        return state.copyWith(products: items);
+      }
+      
+      // 2. Fallback to Hive cache
+      final cachedItems = await _loadFromCache();
+      if (cachedItems.isNotEmpty) {
+        return state.copyWith(products: cachedItems);
+      }
+    } catch (e) {
+      // 3. Error fallback
+      final cachedItems = await _loadFromCache();
+      if (cachedItems.isNotEmpty) {
+        return state.copyWith(products: cachedItems);
+      }
+    }
+  }
+}
+```
+
+📖 **[Read full Hive integration guide →](HIVE_INTEGRATION.md)**
+ + Hive support
+- ✅ Creates Redux actions for CRUD operations with Hive caching
+- ✅ Builds UI screens with StoreConnector
+- ✅ **Adds route to `app_router.dart`** with navigation extensions
+- ✅ **Registers Hive adapter** for offline-first persistence
+- ✅ **Updates AppState** with new feature state
+- ✅ **Runs build_runner** to generate code
+- ✅ **Creates test file** with sample test
 
 1. Add your state to `AppState` in `lib/core/store/app_state.dart`:
 
@@ -381,7 +438,7 @@ class YourAction extends ReduxAction<AppState> {
 
 ## Mason Bricks for Code Generation
 
-This template includes Mason bricks for generating new features quickly.
+This template includes **fully automated** Mason bricks for generating new features.
 
 ### Install Mason CLI
 
@@ -392,22 +449,50 @@ dart pub global activate mason_cli
 ### Generate a New Feature
 
 ```bash
-# Navigate to the project root
-cd your_project
-
-# Generate a new feature
-mason make feature --name profile --model_fields name:String,bio:String --has_api true
+mason make feature --name profile
 ```
 
-This will create:
-- Model classes with proper serialization
-- Redux actions for CRUD operations
-- Screen with ListView and dialogs
-- Complete MVC structure
+This **automatically**:
+- ✅ Creates complete MVC structure (models, controllers, views)
+- ✅ Generates Freezed data models with JSON serialization
+- ✅ Creates Redux actions for CRUD operations
+- ✅ Builds UI screens with StoreConnector
+- ✅ **Adds route to `app_router.dart`** with navigation extensions
+- ✅ **Creates and registers state in `app_state.dart`**
+- ✅ **Creates state file in `lib/core/store/substates/`**
+- ✅ **Adds API endpoints to `app_constants.dart`** (if using API)
+- ✅ **Generates test file** with action and model tests
+- ✅ **Runs `build_runner` automatically** - code compiles immediately!
+
+After generation, immediately use:
+```dart
+context.goToProfile();
+context.pushProfile();
+```
+
+**No manual steps required!** The feature is fully integrated and ready to use.
+
+### What You Get
+
+```
+lib/features/profile/
+├── controllers/profile_actions.dart   # Redux actions (CRUD)
+├── models/profile_models.dart         # Freezed models
+└── views/
+    ├── profile_screen.dart            # UI
+    ├── profile_connector.dart         # StoreConnector
+    └── profile_vm.dart                # ViewModel
+
+lib/core/store/substates/
+└── profile_state.dart                 # Auto-created state
+
+test/
+└── profile_test.dart                  # Unit tests
+```
 
 ### Available Bricks
 
-- **feature**: Complete feature with models, actions, and views
+- **feature**: Complete feature with full automation
 
 ## Customization
 
@@ -481,6 +566,61 @@ flutter test
 
 The template includes a basic widget test. Add more tests following Flutter testing patterns.
 
+## Automated Scripts
+
+###x] Automated setup script
+- [x] Environment configuration
+- [x] Mason brick code generation
+- [x] Automatic route registration
+- [x] Automatic state management
+- [x] Test file generation
+- [ ] Update `baseUrl` in environment files
+- [ ] Configure app name and package identifier (use `./scripts/setup.sh`)
+- [ ] Add proper app icons and splash screen
+- [ ] Implement error tracking (Crashlytics, Sentry, etc.)
+- [ ] Configure CI/CD pipeline
+- [ ] Set up backend API endpoints
+Configures app name, bundle ID, API URL, environment files, and more.
+
+### Run Script
+
+Run with environment configuration:
+```bash
+./scripts/run.sh development   # Dev environment
+./scripts/run.sh staging        # Staging environment
+./scripts/run.sh production     # Production build
+```
+
+### Build Script
+
+Build for specific platforms:
+```bash
+./scripts/build.sh production apk        # Android APK
+./scripts/build.sh staging ios           # iOS staging
+./scripts/build.sh development web       # Web development
+```
+
+Supported: `apk`, `appbundle`, `ios`, `web`, `windows`, `macos`, `linux`
+
+## Environment Management
+
+This template supports multiple environments out of the box.
+
+### Environment Files
+
+- `.env.development` - Local development
+- `.env.staging` - QA/Staging server
+- `.env.production` - Production release
+
+Configure in `lib/core/config/env_config.dart`:
+```dart
+EnvConfig.apiBaseUrl      // Get current API URL
+EnvConfig.isDevelopment   // Check environment
+EnvConfig.enableLogging   // Feature flags
+```
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guide.
+
 ## Production Checklist
 
 - [ ] Update `baseUrl` in AppConstants
@@ -497,13 +637,21 @@ The template includes a basic widget test. Add more tests following Flutter test
 - `async_redux`: State management with theme state included
 - `http`: HTTP client
 - `shared_preferences`: Local storage with theme persistence
+- `hive`: NoSQL database for offline-first data persistence
+- `hive_flutter`: Flutter integration for Hive
+- `path_provider`: File system paths for Hive
+- `flutter_local_notifications`: Local and push notification support
+- `permission_handler`: Platform permission management
 - `go_router`: Modern declarative routing with Flutter web support
 - `freezed`: Immutable state classes with theme state management
 
 ### Development Dependencies
 - `flutter_test`: Testing framework
 - `flutter_lints`: Code linting
-- `build_runner`: Code generation for Freezed classes
+- `build_runner`: Code generation for Freezed + Hive
+- `hive_generator`: Code generation for Hive adapters
+- `freezed`: Code generation for immutable classes
+- `json_serializable`: JSON serialization code generation
 
 ## Contributing
 

@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'substates/auth_state.dart';
 import 'substates/counter_state.dart';
 import 'substates/theme_state.dart';
+import '../../features/notifications/models/notification_state.dart';
 
 part 'app_state.freezed.dart';
 part 'app_state.g.dart';
@@ -12,6 +13,7 @@ class AppState with _$AppState {
     @Default(AuthState()) AuthState auth,
     @Default(CounterState()) CounterState counter,
     @Default(ThemeState()) ThemeState theme,
+    @Default(NotificationState()) NotificationState notifications,
   }) = _AppState;
 
   factory AppState.fromJson(Map<String, dynamic> json) =>

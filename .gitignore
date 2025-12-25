@@ -46,7 +46,11 @@ app.*.map.json
 # Exceptions to above rules.
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 
-# Environment file
+# Environment files
+.env
+.env.development
+.env.staging
+.env.production
 /lib/environment.dart
 
 android/app/.cxx/**

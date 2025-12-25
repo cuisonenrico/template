@@ -22,3 +22,9 @@ vars:
     description: Does this feature interact with an API?
     prompt: Does this feature need API integration?
     default: true
+  
+  hive_type_id:
+    type: number
+    description: Unique Hive type ID (must be unique across all models, use 100+)
+    prompt: Enter a unique Hive type ID (use 100+)
+    default: 100
