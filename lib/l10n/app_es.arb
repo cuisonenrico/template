@@ -1,0 +1,65 @@
+{
+  "@@locale": "es",
+  "appTitle": "Aplicación Plantilla",
+
+  "commonOk": "Aceptar",
+  "commonCancel": "Cancelar",
+  "commonSave": "Guardar",
+  "commonDelete": "Eliminar",
+  "commonEdit": "Editar",
+  "commonClose": "Cerrar",
+  "commonRetry": "Reintentar",
+  "commonLoading": "Cargando...",
+  "commonError": "Error",
+  "commonSuccess": "Éxito",
+  "commonNoData": "No hay datos disponibles",
+  "commonPullToRefresh": "Desliza para actualizar",
+  "commonEndOfList": "Fin de la lista",
+
+  "authLogin": "Iniciar sesión",
+  "authLogout": "Cerrar sesión",
+  "authRegister": "Registrarse",
+  "authEmail": "Correo electrónico",
+  "authPassword": "Contraseña",
+  "authConfirmPassword": "Confirmar contraseña",
+  "authForgotPassword": "¿Olvidaste tu contraseña?",
+  "authNoAccount": "¿No tienes cuenta?",
+  "authHaveAccount": "¿Ya tienes cuenta?",
+  "authLoginWithGoogle": "Continuar con Google",
+  "authLoginWithApple": "Continuar con Apple",
+  "authOrContinueWith": "O continuar con",
+
+  "validationRequired": "Este campo es obligatorio",
+  "validationInvalidEmail": "Por favor ingresa un correo válido",
+  "validationPasswordTooShort": "La contraseña debe tener al menos {count} caracteres",
+  "validationPasswordsDoNotMatch": "Las contraseñas no coinciden",
+
+  "errorGeneric": "Algo salió mal. Por favor intenta de nuevo.",
+  "errorNetwork": "Sin conexión a internet",
+  "errorTimeout": "Tiempo de espera agotado. Por favor intenta de nuevo.",
+  "errorUnauthorized": "Sesión expirada. Por favor inicia sesión de nuevo.",
+  "errorNotFound": "Recurso no encontrado",
+
+  "settingsTitle": "Configuración",
+  "settingsTheme": "Tema",
+  "settingsThemeLight": "Claro",
+  "settingsThemeDark": "Oscuro",
+  "settingsThemeSystem": "Sistema",
+  "settingsLanguage": "Idioma",
+  "settingsNotifications": "Notificaciones",
+  "settingsAbout": "Acerca de",
+  "settingsVersion": "Versión {version}",
+
+  "profileTitle": "Perfil",
+  "profileEditProfile": "Editar perfil",
+  "profileName": "Nombre",
+
+  "homeTitle": "Inicio",
+  "homeWelcome": "¡Bienvenido, {name}!",
+
+  "itemCount": "{count, plural, =0{Sin elementos} =1{1 elemento} other{{count} elementos}}",
+
+  "dateToday": "Hoy",
+  "dateYesterday": "Ayer",
+  "dateFormat": "{date}"
+}

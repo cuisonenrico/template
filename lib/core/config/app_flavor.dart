@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:template/core/constants/app_constants.dart';
 
 enum AppFlavor {
   development,
@@ -13,9 +14,7 @@ enum AppFlavor {
 
   static AppFlavor get current {
     if (_current == null) {
-      throw Exception(
-        'AppFlavor has not been set! Call AppFlavor.setFlavor() in main()',
-      );
+      throw Exception('AppFlavor has not been set! Call AppFlavor.setFlavor() in main()');
     }
     return _current!;
   }
@@ -38,20 +37,11 @@ enum AppFlavor {
   String get apiBaseUrl {
     switch (this) {
       case AppFlavor.development:
-        return const String.fromEnvironment(
-          'API_BASE_URL',
-          defaultValue: 'https://dev-api.yourapp.com',
-        );
+        return const String.fromEnvironment('API_BASE_URL', defaultValue: AppConstants.baseUrl);
       case AppFlavor.staging:
-        return const String.fromEnvironment(
-          'API_BASE_URL',
-          defaultValue: 'https://staging-api.yourapp.com',
-        );
+        return const String.fromEnvironment('API_BASE_URL', defaultValue: AppConstants.baseUrl);
       case AppFlavor.production:
-        return const String.fromEnvironment(
-          'API_BASE_URL',
-          defaultValue: 'https://api.yourapp.com',
-        );
+        return const String.fromEnvironment('API_BASE_URL', defaultValue: AppConstants.baseUrl);
     }
   }
 

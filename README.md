@@ -1,70 +1,61 @@
-# Flutter Template with Authentication & Redux
+# Flutter Template
 
-A production-ready Flutter template with basic authentication, MVC architecture, and Async Redux state management.
+A **production-ready Flutter template** with OAuth authentication, Async Redux state management, GoRouter navigation, and comprehensive utilities for rapid app development.
 
-## Features
+## ✨ Features
 
-- ✅ **Authentication System**: Login/Register with JWT token management
-- ✅ **MVC Architecture**: Organized code structure with Models, Views, and Controllers
-- ✅ **Async Redux**: Predictable state management with actions and reducers
-- ✅ **API Integration**: HTTP service with error handling and token management
-- ✅ **Hive Database**: Offline-first local database with automatic caching
-- ✅ **Notifications**: Local and push notifications with permission handling
-- ✅ **Persistent Storage**: SharedPreferences for local data storage
-- ✅ **Routing**: Clean route management with GoRouter
-- ✅ **Material Design 3**: Modern theming with light/dark mode support
-- ✅ **Build Flavors**: Development, staging, and production environments
-- ✅ **Counter Demo**: Sample implementation showing Redux patterns
-- ✅ **Mason Bricks**: Fully automated code generation for new features
+### Core
+- ✅ **OAuth Authentication** - Email/password + Google OAuth (Firebase optional)
+- ✅ **Async Redux** - Predictable state management with actions and reducers
+- ✅ **GoRouter** - Declarative navigation with auth guards
+- ✅ **MVC Architecture** - Feature-based organization with clear separation
+- ✅ **Material Design 3** - Modern theming with light/dark/system modes
 
-## Project Structure
+### Data & Storage
+- ✅ **Hive Database** - Offline-first local storage with type-safe models
+- ✅ **API Service** - HTTP client with automatic token refresh on 401
+- ✅ **SharedPreferences** - StorageHelper wrapper for simple key-value storage
 
-```
-lib/
-├── core/
-│   ├── constants/
-│   │   ├── app_constants.dart    # API URLs, routes, keys
-│   │   └── app_theme.dart        # App theming and colors
-│   ├── router/
-│   │   └── app_router.dart       # Route configuration
-│   ├── services/
-│   │   └── api_service.dart      # HTTP client wrapper
-│   ├── store/
-│   │   └── app_state.dart        # Redux app state
-│   └── utils/
-│       └── storage_helper.dart   # SharedPreferences wrapper
-├── features/
-│   ├── auth/
-│   │   ├── controllers/
-│   │   │   └── auth_actions.dart # Authentication Redux actions
-│   │   ├── models/
-│   │   │   └── auth_models.dart  # User and auth response models
-│   │   └── views/
-│   │       ├── login_screen.dart
-│   │       └── register_screen.dart
-│   └── counter/
-│       ├── controllers/
-│       │   └── counter_actions.dart # Counter Redux actions
-│       └── views/
-│           └── counter_screen.dart
-├── shared/
-│   └── widgets/
-│       ├── common_widgets.dart   # Reusable UI components
-│       └── home_screen.dart      # Main dashboard
-└── main.dart                     # App entry point
-```
+### Utilities
+- ✅ **Form Validators** - Email, password, phone, credit card, and more
+- ✅ **Pagination** - Infinite scroll with state management
+- ✅ **Pull-to-Refresh** - RefreshableList widget with loading/error states
+- ✅ **Image Handling** - Picker, compression, cached network images
+- ✅ **Connectivity** - Network status monitoring with offline banner
+- ✅ **Error Boundary** - Global error handling with retry UI
+- ✅ **Notifications** - Local + push notification ready
+- ✅ **Localization** - i18n with ARB files (English, Spanish included)
+- ✅ **Analytics** - Pluggable analytics abstraction
+- ✅ **Crash Reporting** - Crashlytics/Sentry ready
 
-## Getting Started
+### Developer Experience
+- ✅ **Mason Bricks** - Automated feature scaffolding
+- ✅ **Build Flavors** - Development, staging, production environments
+- ✅ **Logging** - Pretty console logs with AppLogger
+- ✅ **Unit Tests** - Tests for actions, validators, pagination
 
-### 1. Quick Setup (Recommended)
+## 🚀 Quick Start
 
-### 2. Manual Setup (Alternative)
+### 1. Setup (Recommended)
 
 ```bash
-# Clone the template
+# Clone and enter the project
 git clone <repository-url>
 cd template
 
+# Run interactive setup
+./scripts/setup.sh
+```
+
+The setup script will:
+- Configure app name and bundle ID
+- Set up API base URL
+- Create environment files
+- Run code generation
+
+### 2. Manual Setup
+
+```bash
 # Get dependencies
 flutter pub get
 
@@ -76,604 +67,164 @@ dart run rename setBundleId --targets ios,android --value "com.company.app"
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-### 3 up your API base URL
-- Create environment configuration files
-- Install Mason CLI (optional)
-- Run code generation automatically
-
-### 2. Manual Setup (Alternative)
-
-```b3. Configuration
-
-Update the API configuration in `lib/core/constants/app_constants.dart` (if not using setup script):
-
-```dart
-class AppConstants {
-  // Update with your API base URL
-  static const String baseUrl = 'https://your-api.com';
-  
-  // API Endpoints
-  static const String loginEndpoint = '/auth/login';
-  static const String registerEndpoint = '/auth/register';
-  // ... other endpoints
-}
-```
-
-Or use environment files (`.env.development`, `.env.staging`, `.env.production`):
-```bash
-API_BASE_URL=https://api.yourapp.com
-APP_NAME=My Awesome App
-```
-
-### 4. Run the App
+### 3. Run the App
 
 ```bash
-# Using environment configuration
+# Run with development config
 ./scripts/run.sh development
 
-# Or standard Flutter run
-**Bundle ID Updates:**
-- `android/app/build.gradle` - Android package name
-- `ios/Runner.xcodeproj/project.pbxproj` - iOS bundle identifier
-- `android/app/src/main/AndroidManifest.xml` - Android package
-- `android/app/src/main/kotlin/` - Kotlin package structure
-
-### 4. Run the App
-
-```bash
+# Or standard run
 flutter run
 ```
 
-## Authentication Flow
-
-### Expected API Response Format
-
-**Login/Register Response:**
-```json
-{
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
-  "refresh_token": "def50200a8b1f...",
-  "user": {
-    "id": "1",
-    "email": "user@example.com",
-    "name": "John Doe",
-    "avatar": null,
-    "created_at": "2024-01-01T00:00:00Z"
-  },
-  "token_type": "Bearer",
-  "expires_in": 3600
-}
-```
-
-### Token Management
-
-- Tokens are automatically stored in SharedPreferences
-- API requests include Bearer token in Authorization header
-- Automatic token refresh (implement the refresh endpoint in your backend)
-- Logout clears all stored authentication data
-
-## GoRouter Navigation Architecture
-
-### Route Structure
+## 📁 Project Structure
 
 ```
-/                     → Redirects based on auth state
-├── /login           → Login screen
-├── /register        → Registration screen  
-├── /home            → Main dashboard
-│   └── /counter     → Counter feature (nested)
-└── /counter         → Redirects to /home/counter
+lib/
+├── core/
+│   ├── config/          # Environment & flavor configuration
+│   ├── constants/       # Theme, API constants
+│   ├── router/          # GoRouter configuration
+│   ├── services/        # API, Hive, Analytics, Connectivity, etc.
+│   ├── store/           # Redux store & substates
+│   └── utils/           # Validators, pagination, logging, storage
+├── features/
+│   ├── auth/            # Login, register, OAuth
+│   ├── counter/         # Demo feature
+│   └── theme/           # Theme switching
+├── l10n/                # Localization ARB files
+└── shared/
+    └── widgets/         # Reusable components
 ```
 
-### Web-Specific Features
+## 🔐 Authentication
 
-- **URL Management**: Clean, readable URLs for all screens
-- **Deep Linking**: Direct access to any screen via URL
-- **Browser Integration**: Native back/forward button support
-- **Responsive Transitions**: Fade for web, slide for mobile
-- **Error Handling**: Custom 404 page with navigation
+This template uses **OAuth-first authentication** (no Firebase required by default).
 
-### Navigation Best Practices
-
+### Email/Password Login
 ```dart
-// ✅ Use extension methods for type safety
-context.goToCounter();
-
-// ✅ Use direct GoRouter for dynamic routes  
-context.go('/profile/${userId}');
-
-// ❌ Avoid Navigator.push with GoRouter
-// Navigator.pushNamed(context, '/counter'); // Don't use
+await context.dispatch(LoginAction(
+  email: 'user@example.com',
+  password: 'password123',
+));
 ```
 
-## Modern Theming System with Dark Mode
-
-### Comprehensive Theme Architecture
-
-This template includes a **production-ready theming system** with:
-
-- ✅ **Material Design 3** - Latest Material You specifications
-- ✅ **Dark Mode Support** - Automatic system detection + manual override
-- ✅ **Theme Persistence** - User preferences saved locally
-- ✅ **Design Tokens** - Consistent spacing, colors, and typography
-- ✅ **Theme Switching** - Multiple UI components for theme selection
-
-### Theme Features
-
-#### **🎨 Design System**
+### Google OAuth
 ```dart
-// Spacing tokens
-AppTheme.space8    // 8px
-AppTheme.space16   // 16px  
-AppTheme.space24   // 24px
-AppTheme.space32   // 32px
-
-// Radius tokens
-AppTheme.radiusXs   // 4px
-AppTheme.radiusSm   // 8px
-AppTheme.radiusMd   // 12px
-AppTheme.radiusLg   // 16px
-
-// Context extensions
-context.colors.primary     // Current theme primary color
-context.textStyles.headlineMedium  // Material 3 typography
-context.space16          // Easy spacing access
-context.radiusMd         // Easy radius access
+await context.dispatch(GetGoogleAuthUrlAction(
+  onSuccess: (url) => launchUrl(Uri.parse(url)),
+  onError: (error) => showError(error),
+));
 ```
 
-#### **🌙 Theme Modes**
-- **Light Mode** - Clean, bright interface
-- **Dark Mode** - OLED-friendly dark interface  
-- **System Mode** - Follows device preference automatically
-
-#### **💾 Persistence**
-Theme preferences are automatically saved and restored across app sessions.
-
-### Using the Theme System
-
-#### **Adding Theme Switcher to UI**
-
+### Enable Firebase Auth (Optional)
+In `main_common.dart`, set:
 ```dart
-// Icon button (compact)
-ThemeSwitcher(
-  type: ThemeSwitcherType.iconButton,
-  showLabel: false,
-)
-
-// Dropdown menu
-ThemeSwitcher(
-  type: ThemeSwitcherType.dropdown,
-  showLabel: true,
-)
-
-// Segmented buttons
-ThemeSwitcher(
-  type: ThemeSwitcherType.segmentedButton,
-  showLabel: true,
-)
-
-// Settings list tile
-ThemeSwitcher(
-  type: ThemeSwitcherType.listTile,
-)
+const bool useFirebaseAuth = true;
 ```
 
-#### **Programmatic Theme Changes**
+📖 See [AUTH.md](AUTH.md) for complete documentation.
 
-```dart
-// Change to specific theme
-dispatch(ChangeThemeAction(AppThemeMode.dark));
+## 🧩 Adding New Features
 
-// Toggle between light/dark
-dispatch(ToggleThemeAction());
-
-// Access current theme
-final currentTheme = store.state.theme.themeMode;
-```
-
-#### **Custom Styling with Theme**
-
-```dart
-Container(
-  padding: EdgeInsets.all(context.space16),
-  decoration: BoxDecoration(
-    color: context.colors.surface,
-    borderRadius: BorderRadius.circular(context.radiusMd),
-    border: Border.all(color: context.colors.outline),
-  ),
-  child: Text(
-    'Themed Container',
-    style: context.textStyles.bodyMedium?.copyWith(
-      color: context.colors.onSurface,
-    ),
-  ),
-)
-```
-
-### Theme Architecture
-
-#### **File Structure**
-```
-lib/core/
-├── constants/
-│   └── app_theme.dart          # Main theme definitions
-├── store/substates/
-│   └── theme_state.dart        # Theme state management
-└── utils/
-    └── storage_helper.dart     # Theme persistence
-
-lib/features/theme/
-├── controllers/
-│   └── theme_actions.dart      # Theme Redux actions
-└── widgets/
-    └── theme_switcher.dart     # UI components
-```
-
-### Theme Customization
-
-#### **Brand Colors**
-Update in `lib/core/constants/app_theme.dart`:
-```dart
-static const Color seedColor = Color(0xFF2196F3);  // Your brand color
-static const Color brandPrimary = Color(0xFF1976D2);
-```
-
-#### **Design Tokens**
-Modify spacing, radius, and elevation systems:
-```dart
-// Custom spacing scale
-static const double space6 = 6.0;   // Add custom values
-static const double space28 = 28.0;
-
-// Custom radius scale  
-static const double radiusXxl = 32.0;
-
-// Custom elevation
-static const double elevation12 = 12.0;
-```
-
-#### **Pre-themed Components**
-All Material components include consistent styling:
-- **Cards** - Proper elevation, radius, and clipping
-- **Buttons** - Consistent padding, shapes, and states  
-- **Input Fields** - Filled styling with proper focus states
-- **App Bars** - Proper contrast and system overlay styles
-- **Dialogs & Sheets** - Rounded corners and appropriate elevation
-- **Navigation** - Consistent theming across all navigation types
-
-## Hive Database - Offline-First Storage
-
-### What is Hive?
-
-Hive is a **lightweight, fast NoSQL database** built for Flutter. This template integrates Hive for offline-first data persistence with automatic caching.
-
-### Key Features
-
-- ✅ **Offline-First**: All data is cached locally
-- ✅ **Automatic Caching**: API responses automatically saved
-- ✅ **Fallback Support**: Loads from cache when API fails
-- ✅ **Type-Safe**: Full Dart type safety with Freezed
-- ✅ **Zero Configuration**: Mason brick handles everything
-- ✅ **Fast Performance**: ~1M operations per second
-
-### How It Works
-
-When you generate a feature with Mason, it automatically:
-1. Adds `@HiveType` and `@HiveField` annotations to models
-2. Creates CRUD actions with automatic Hive caching
-3. Registers Hive adapter in `main_common.dart`
-4. Generates Hive adapter via build_runner
-
-**Example offline-first flow:**
-```dart
-// Fetch action tries API first, falls back to Hive cache
-class FetchProductsAction extends ReduxAction<AppState> {
-  @override
-  Future<AppState?> reduce() async {
-    try {
-      // 1. Try API
-      final response = await apiService.get('/products');
-      if (response.success) {
-        await _cacheItems(items);  // Cache in Hive
-        return state.copyWith(products: items);
-      }
-      
-      // 2. Fallback to Hive cache
-      final cachedItems = await _loadFromCache();
-      if (cachedItems.isNotEmpty) {
-        return state.copyWith(products: cachedItems);
-      }
-    } catch (e) {
-      // 3. Error fallback
-      final cachedItems = await _loadFromCache();
-      if (cachedItems.isNotEmpty) {
-        return state.copyWith(products: cachedItems);
-      }
-    }
-  }
-}
-```
-
-📖 **[Read full Hive integration guide →](HIVE_INTEGRATION.md)**
- + Hive support
-- ✅ Creates Redux actions for CRUD operations with Hive caching
-- ✅ Builds UI screens with StoreConnector
-- ✅ **Adds route to `app_router.dart`** with navigation extensions
-- ✅ **Registers Hive adapter** for offline-first persistence
-- ✅ **Updates AppState** with new feature state
-- ✅ **Runs build_runner** to generate code
-- ✅ **Creates test file** with sample test
-
-1. Add your state to `AppState` in `lib/core/store/app_state.dart`:
-
-```dart
-@freezed
-class AppState with _$AppState {
-  const factory AppState({
-    @Default(AuthState()) AuthState auth,
-    @Default(CounterState()) CounterState counter,
-    @Default(ThemeState()) ThemeState theme,
-    @Default(YourNewState()) YourNewState yourNewFeature, // Add here
-  }) = _AppState;
-}
-```
-
-### Creating Actions
-
-Follow the pattern in `lib/features/counter/controllers/counter_actions.dart`:
-
-```dart
-class YourAction extends ReduxAction<AppState> {
-  @override
-  Future<AppState?> reduce() async {
-    // Your logic here
-    return state.copy(
-      yourNewFeature: state.yourNewFeature.copy(
-        // updated properties
-      ),
-    );
-  }
-}
-```
-
-## Mason Bricks for Code Generation
-
-This template includes **fully automated** Mason bricks for generating new features.
-
-### Install Mason CLI
+### Using Mason (Recommended)
 
 ```bash
-dart pub global activate mason_cli
+mason make feature --name your_feature
 ```
 
-### Generate a New Feature
+This automatically creates:
+- MVC structure (models, controllers, views)
+- Hive integration with offline caching
+- Route registration
+- Redux state & actions
+- API endpoints
+- Unit tests
+
+### Manual Creation
+See [DEVELOPMENT.md](DEVELOPMENT.md) for step-by-step guide.
+
+## 📚 Documentation
+
+| File | Description |
+|------|-------------|
+| [AUTH.md](AUTH.md) | Authentication flows, actions, endpoints |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Development workflow, adding features |
+| [FLAVORS.md](FLAVORS.md) | Build flavors & environment configuration |
+| [NOTIFICATIONS.md](NOTIFICATIONS.md) | Push & local notifications setup |
+| [LOGGER.md](LOGGER.md) | Logging utilities |
+| [FIREBASE_AUTH_SETUP.md](FIREBASE_AUTH_SETUP.md) | Firebase configuration (optional) |
+
+## 🛠️ Common Commands
 
 ```bash
-mason make feature --name profile
-```
+# Run with environment
+./scripts/run.sh development
+./scripts/run.sh production
 
-This **automatically**:
-- ✅ Creates complete MVC structure (models, controllers, views)
-- ✅ Generates Freezed data models with JSON serialization
-- ✅ Creates Redux actions for CRUD operations
-- ✅ Builds UI screens with StoreConnector
-- ✅ **Adds route to `app_router.dart`** with navigation extensions
-- ✅ **Creates and registers state in `app_state.dart`**
-- ✅ **Creates state file in `lib/core/store/substates/`**
-- ✅ **Adds API endpoints to `app_constants.dart`** (if using API)
-- ✅ **Generates test file** with action and model tests
-- ✅ **Runs `build_runner` automatically** - code compiles immediately!
+# Build
+./scripts/build.sh production apk
+./scripts/build.sh staging ios
 
-After generation, immediately use:
-```dart
-context.goToProfile();
-context.pushProfile();
-```
+# Code generation
+dart run build_runner build --delete-conflicting-outputs
 
-**No manual steps required!** The feature is fully integrated and ready to use.
-
-### What You Get
-
-```
-lib/features/profile/
-├── controllers/profile_actions.dart   # Redux actions (CRUD)
-├── models/profile_models.dart         # Freezed models
-└── views/
-    ├── profile_screen.dart            # UI
-    ├── profile_connector.dart         # StoreConnector
-    └── profile_vm.dart                # ViewModel
-
-lib/core/store/substates/
-└── profile_state.dart                 # Auto-created state
-
-test/
-└── profile_test.dart                  # Unit tests
-```
-
-### Available Bricks
-
-- **feature**: Complete feature with full automation
-
-## Customization
-
-### Theming
-
-Update colors and styles in `lib/core/constants/app_theme.dart`:
-
-```dart
-class AppTheme {
-  static const Color primaryColor = Colors.blue; // Change primary color
-  static const Color secondaryColor = Colors.blueAccent;
-  // ... other theme properties
-}
-```
-
-### Navigation & Routing
-
-This template uses **GoRouter** for modern, declarative routing with excellent Flutter web support.
-
-#### Adding New Routes
-
-1. Add your route to `app_router.dart`:
-```dart
-GoRoute(
-  path: '/your-feature',
-  name: 'your-feature',
-  pageBuilder: (context, state) => _buildPageWithTransition(
-    context,
-    state,
-    const YourFeatureConnector(),
-    'Your Feature',
-  ),
-),
-```
-
-2. Use the navigation extensions:
-```dart
-// Navigate using GoRouter extensions
-context.goToHome();
-context.goToCounter();
-context.goToLogin();
-
-// Or use direct GoRouter methods
-context.go('/your-feature');
-context.push('/your-feature');
-```
-
-#### Web Support Features
-
-- **Direct URLs**: `yourapp.com/counter` works directly
-- **Browser Back/Forward**: Full browser navigation support
-- **Bookmarking**: Deep linking to any screen
-- **SEO Friendly**: Proper URL structure for web
-- **Custom Transitions**: Different animations for web vs mobile
-
-### API Endpoints
-
-Update `AppConstants` with your backend endpoints:
-
-```dart
-static const String yourEndpoint = '/your-endpoint';
-```
-
-## Testing
-
-Run tests:
-
-```bash
+# Tests
 flutter test
+
+# Analyze
+flutter analyze
 ```
 
-The template includes a basic widget test. Add more tests following Flutter testing patterns.
+## 🎨 Utilities Usage
 
-## Automated Scripts
-
-###x] Automated setup script
-- [x] Environment configuration
-- [x] Mason brick code generation
-- [x] Automatic route registration
-- [x] Automatic state management
-- [x] Test file generation
-- [ ] Update `baseUrl` in environment files
-- [ ] Configure app name and package identifier (use `./scripts/setup.sh`)
-- [ ] Add proper app icons and splash screen
-- [ ] Implement error tracking (Crashlytics, Sentry, etc.)
-- [ ] Configure CI/CD pipeline
-- [ ] Set up backend API endpoints
-Configures app name, bundle ID, API URL, environment files, and more.
-
-### Run Script
-
-Run with environment configuration:
-```bash
-./scripts/run.sh development   # Dev environment
-./scripts/run.sh staging        # Staging environment
-./scripts/run.sh production     # Production build
-```
-
-### Build Script
-
-Build for specific platforms:
-```bash
-./scripts/build.sh production apk        # Android APK
-./scripts/build.sh staging ios           # iOS staging
-./scripts/build.sh development web       # Web development
-```
-
-Supported: `apk`, `appbundle`, `ios`, `web`, `windows`, `macos`, `linux`
-
-## Environment Management
-
-This template supports multiple environments out of the box.
-
-### Environment Files
-
-- `.env.development` - Local development
-- `.env.staging` - QA/Staging server
-- `.env.production` - Production release
-
-Configure in `lib/core/config/env_config.dart`:
+### Form Validation
 ```dart
-EnvConfig.apiBaseUrl      // Get current API URL
-EnvConfig.isDevelopment   // Check environment
-EnvConfig.enableLogging   // Feature flags
+TextFormField(
+  validator: Validators.compose([
+    Validators.required('Email is required'),
+    Validators.email(),
+  ]),
+)
 ```
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guide.
+### Pagination
+```dart
+PaginatedListView<Item>(
+  state: paginatedState,
+  onLoadMore: () => dispatch(LoadMoreAction()),
+  onRefresh: () async => dispatch(RefreshAction()),
+  itemBuilder: (context, item, index) => ItemTile(item),
+)
+```
 
-## Production Checklist
+### Connectivity Banner
+```dart
+ConnectivityBanner(
+  child: YourApp(),
+)
+```
 
-- [ ] Update `baseUrl` in AppConstants
-- [ ] Configure app name and package identifier
-- [ ] Add proper app icons and splash screen
-- [ ] Implement error tracking (Crashlytics, Sentry, etc.)
-- [ ] Add proper logging
-- [ ] Configure CI/CD pipeline
-- [ ] Add environment configurations (dev, staging, prod)
+### Image Handling
+```dart
+// Pick and compress
+final file = await ImageService().pickWithDialog(context);
+final compressed = await ImageService().compressImage(file);
 
-## Dependencies
+// Display cached
+AppNetworkImage(imageUrl: 'https://...', width: 100, height: 100)
+```
 
-### Core Dependencies
-- `async_redux`: State management with theme state included
-- `http`: HTTP client
-- `shared_preferences`: Local storage with theme persistence
-- `hive`: NoSQL database for offline-first data persistence
-- `hive_flutter`: Flutter integration for Hive
-- `path_provider`: File system paths for Hive
-- `flutter_local_notifications`: Local and push notification support
-- `permission_handler`: Platform permission management
-- `go_router`: Modern declarative routing with Flutter web support
-- `freezed`: Immutable state classes with theme state management
+### Analytics
+```dart
+await AnalyticsService().logEvent('button_tap', {'button': 'submit'});
+await AnalyticsEvents.featureUsed('dark_mode');
+```
 
-### Development Dependencies
-- `flutter_test`: Testing framework
-- `flutter_lints`: Code linting
-- `build_runner`: Code generation for Freezed + Hive
-- `hive_generator`: Code generation for Hive adapters
-- `freezed`: Code generation for immutable classes
-- `json_serializable`: JSON serialization code generation
+## 🔗 Backend
 
-## Contributing
+This template is designed to work with [cuisonenrico/be-template](https://github.com/cuisonenrico/be-template) - a NestJS backend with OAuth, Supabase, and Redis.
 
-1. Follow the established MVC architecture
-2. Use Redux for state management
-3. Add proper documentation
-4. Include tests for new features
-5. Follow Dart/Flutter style guidelines
+## 📄 License
 
-## License
-
-MIT License - feel free to use this template for your projects.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+MIT License

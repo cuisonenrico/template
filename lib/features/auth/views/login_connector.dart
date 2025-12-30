@@ -18,7 +18,8 @@ class LoginConnector extends StatelessWidget {
           error: vm.error,
           onClearError: vm.onClearError,
           onLogin: vm.onLogin,
-          onGoogleSignIn: vm.onGoogleSignIn,
+          onGetGoogleAuthUrl: vm.onGetGoogleAuthUrl,
+          onGoogleSignInWithCode: vm.onGoogleSignInWithCode,
         );
       },
     );

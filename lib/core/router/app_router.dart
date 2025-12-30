@@ -14,7 +14,7 @@ class AppRouter {
     final authNotifier = AuthNotifier(store);
 
     return GoRouter(
-      initialLocation: '/login',
+      initialLocation: '/home',
       debugLogDiagnostics: true,
       refreshListenable: authNotifier,
       redirect: (context, state) {
@@ -39,14 +39,23 @@ class AppRouter {
         GoRoute(
           path: '/login',
           name: 'login',
-          pageBuilder: (context, state) => _buildPageWithTransition(context, state, const LoginConnector(), 'Login'),
+          pageBuilder: (context, state) => _buildPageWithTransition(
+            context,
+            state,
+            const LoginConnector(),
+            'Login',
+          ),
           routes: [
             // Register as a subroute of login
             GoRoute(
               path: 'register',
               name: 'register',
-              pageBuilder: (context, state) =>
-                  _buildPageWithTransition(context, state, const RegisterConnector(), 'Register'),
+              pageBuilder: (context, state) => _buildPageWithTransition(
+                context,
+                state,
+                const RegisterConnector(),
+                'Register',
+              ),
             ),
           ],
         ),
@@ -55,20 +64,32 @@ class AppRouter {
         GoRoute(
           path: '/home',
           name: 'home',
-          pageBuilder: (context, state) => _buildPageWithTransition(context, state, const HomeConnector(), 'Home'),
+          pageBuilder: (context, state) => _buildPageWithTransition(
+            context,
+            state,
+            const HomeConnector(),
+            'Home',
+          ),
           routes: [
             // Nested routes under home
             GoRoute(
               path: 'counter',
               name: 'counter',
-              pageBuilder: (context, state) =>
-                  _buildPageWithTransition(context, state, const CounterConnector(), 'Counter'),
+              pageBuilder: (context, state) => _buildPageWithTransition(
+                context,
+                state,
+                const CounterConnector(),
+                'Counter',
+              ),
             ),
           ],
         ),
 
         // Direct counter route (for web URLs)
-        GoRoute(path: '/counter', redirect: (context, state) => '/home/counter'),
+        GoRoute(
+          path: '/counter',
+          redirect: (context, state) => '/home/counter',
+        ),
       ],
 
       // Error page for unknown routes
@@ -83,9 +104,15 @@ class AppRouter {
               children: [
                 const Icon(Icons.error_outline, size: 64, color: Colors.red),
                 const SizedBox(height: 16),
-                Text('Page not found: ${state.uri.path}', style: const TextStyle(fontSize: 18)),
+                Text(
+                  'Page not found: ${state.uri.path}',
+                  style: const TextStyle(fontSize: 18),
+                ),
                 const SizedBox(height: 16),
-                ElevatedButton(onPressed: () => context.go('/home'), child: const Text('Go Home')),
+                ElevatedButton(
+                  onPressed: () => context.go('/home'),
+                  child: const Text('Go Home'),
+                ),
               ],
             ),
           ),
@@ -96,18 +123,27 @@ class AppRouter {
   }
 
   // Helper method to build pages with transitions
-  static Page<dynamic> _buildPageWithTransition(BuildContext context, GoRouterState state, Widget child, String name) {
+  static Page<dynamic> _buildPageWithTransition(
+    BuildContext context,
+    GoRouterState state,
+    Widget child,
+    String name,
+  ) {
     return CustomTransitionPage<void>(
       key: state.pageKey,
       child: child,
       name: name,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         // Use different transitions for web vs mobile
-        if (Theme.of(context).platform == TargetPlatform.android || Theme.of(context).platform == TargetPlatform.iOS) {
+        if (Theme.of(context).platform == TargetPlatform.android ||
+            Theme.of(context).platform == TargetPlatform.iOS) {
           // Mobile: Slide transition
           return SlideTransition(
             position: animation.drive(
-              Tween(begin: const Offset(1.0, 0.0), end: Offset.zero).chain(CurveTween(curve: Curves.easeInOut)),
+              Tween(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).chain(CurveTween(curve: Curves.easeInOut)),
             ),
             child: child,
           );

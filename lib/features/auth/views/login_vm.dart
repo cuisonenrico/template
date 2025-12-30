@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:async_redux/async_redux.dart';
+import 'package:flutter/material.dart';
+
 import '../../../core/store/app_state.dart';
 import '../controllers/auth_actions.dart';
 
@@ -11,7 +12,8 @@ class LoginVm extends Vm {
     required this.error,
     required this.onClearError,
     required this.onLogin,
-    required this.onGoogleSignIn,
+    required this.onGetGoogleAuthUrl,
+    required this.onGoogleSignInWithCode,
   });
 
   final bool isLoading;
@@ -19,7 +21,16 @@ class LoginVm extends Vm {
   final String? error;
   final VoidCallback onClearError;
   final Function(String email, String password) onLogin;
-  final VoidCallback onGoogleSignIn;
+
+  /// Get the OAuth URL to open in browser/webview
+  final Function({
+    required void Function(String url) onSuccess,
+    required void Function(String error) onError,
+  })
+  onGetGoogleAuthUrl;
+
+  /// Complete Google sign-in with authorization code from callback
+  final Function(String authorizationCode) onGoogleSignInWithCode;
 
   @override
   bool operator ==(Object other) =>
@@ -45,7 +56,15 @@ class LoginVmFactory extends VmFactory<AppState, Widget, LoginVm> {
       onClearError: () => dispatch(ClearAuthErrorAction()),
       onLogin: (email, password) =>
           dispatch(LoginAction(email: email, password: password)),
-      onGoogleSignIn: () => dispatch(GoogleSignInAction()),
+      onGetGoogleAuthUrl: ({required onSuccess, required onError}) => dispatch(
+        GetOAuthUrlAction(
+          provider: 'google',
+          onSuccess: onSuccess,
+          onError: onError,
+        ),
+      ),
+      onGoogleSignInWithCode: (code) =>
+          dispatch(GoogleSignInAction(authorizationCode: code)),
     );
   }
 }

@@ -1,0 +1,250 @@
+{
+  "@@locale": "en",
+  "appTitle": "Template App",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+
+  "commonOk": "OK",
+  "@commonOk": {
+    "description": "OK button text"
+  },
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Cancel button text"
+  },
+  "commonSave": "Save",
+  "@commonSave": {
+    "description": "Save button text"
+  },
+  "commonDelete": "Delete",
+  "@commonDelete": {
+    "description": "Delete button text"
+  },
+  "commonEdit": "Edit",
+  "@commonEdit": {
+    "description": "Edit button text"
+  },
+  "commonClose": "Close",
+  "@commonClose": {
+    "description": "Close button text"
+  },
+  "commonRetry": "Retry",
+  "@commonRetry": {
+    "description": "Retry button text"
+  },
+  "commonLoading": "Loading...",
+  "@commonLoading": {
+    "description": "Loading text"
+  },
+  "commonError": "Error",
+  "@commonError": {
+    "description": "Generic error title"
+  },
+  "commonSuccess": "Success",
+  "@commonSuccess": {
+    "description": "Generic success title"
+  },
+  "commonNoData": "No data available",
+  "@commonNoData": {
+    "description": "No data message"
+  },
+  "commonPullToRefresh": "Pull to refresh",
+  "@commonPullToRefresh": {
+    "description": "Pull to refresh hint"
+  },
+  "commonEndOfList": "End of list",
+  "@commonEndOfList": {
+    "description": "End of list message"
+  },
+
+  "authLogin": "Login",
+  "@authLogin": {
+    "description": "Login button/title"
+  },
+  "authLogout": "Logout",
+  "@authLogout": {
+    "description": "Logout button"
+  },
+  "authRegister": "Register",
+  "@authRegister": {
+    "description": "Register button/title"
+  },
+  "authEmail": "Email",
+  "@authEmail": {
+    "description": "Email field label"
+  },
+  "authPassword": "Password",
+  "@authPassword": {
+    "description": "Password field label"
+  },
+  "authConfirmPassword": "Confirm Password",
+  "@authConfirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "authForgotPassword": "Forgot Password?",
+  "@authForgotPassword": {
+    "description": "Forgot password link"
+  },
+  "authNoAccount": "Don't have an account?",
+  "@authNoAccount": {
+    "description": "No account text"
+  },
+  "authHaveAccount": "Already have an account?",
+  "@authHaveAccount": {
+    "description": "Have account text"
+  },
+  "authLoginWithGoogle": "Continue with Google",
+  "@authLoginWithGoogle": {
+    "description": "Google login button"
+  },
+  "authLoginWithApple": "Continue with Apple",
+  "@authLoginWithApple": {
+    "description": "Apple login button"
+  },
+  "authOrContinueWith": "Or continue with",
+  "@authOrContinueWith": {
+    "description": "Social login divider text"
+  },
+
+  "validationRequired": "This field is required",
+  "@validationRequired": {
+    "description": "Required field validation message"
+  },
+  "validationInvalidEmail": "Please enter a valid email address",
+  "@validationInvalidEmail": {
+    "description": "Invalid email validation message"
+  },
+  "validationPasswordTooShort": "Password must be at least {count} characters",
+  "@validationPasswordTooShort": {
+    "description": "Password too short validation message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "validationPasswordsDoNotMatch": "Passwords do not match",
+  "@validationPasswordsDoNotMatch": {
+    "description": "Passwords don't match validation message"
+  },
+
+  "errorGeneric": "Something went wrong. Please try again.",
+  "@errorGeneric": {
+    "description": "Generic error message"
+  },
+  "errorNetwork": "No internet connection",
+  "@errorNetwork": {
+    "description": "Network error message"
+  },
+  "errorTimeout": "Request timed out. Please try again.",
+  "@errorTimeout": {
+    "description": "Timeout error message"
+  },
+  "errorUnauthorized": "Session expired. Please login again.",
+  "@errorUnauthorized": {
+    "description": "Unauthorized error message"
+  },
+  "errorNotFound": "Resource not found",
+  "@errorNotFound": {
+    "description": "Not found error message"
+  },
+
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Settings screen title"
+  },
+  "settingsTheme": "Theme",
+  "@settingsTheme": {
+    "description": "Theme setting label"
+  },
+  "settingsThemeLight": "Light",
+  "@settingsThemeLight": {
+    "description": "Light theme option"
+  },
+  "settingsThemeDark": "Dark",
+  "@settingsThemeDark": {
+    "description": "Dark theme option"
+  },
+  "settingsThemeSystem": "System",
+  "@settingsThemeSystem": {
+    "description": "System theme option"
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Language setting label"
+  },
+  "settingsNotifications": "Notifications",
+  "@settingsNotifications": {
+    "description": "Notifications setting label"
+  },
+  "settingsAbout": "About",
+  "@settingsAbout": {
+    "description": "About section label"
+  },
+  "settingsVersion": "Version {version}",
+  "@settingsVersion": {
+    "description": "App version text",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "profileTitle": "Profile",
+  "@profileTitle": {
+    "description": "Profile screen title"
+  },
+  "profileEditProfile": "Edit Profile",
+  "@profileEditProfile": {
+    "description": "Edit profile button"
+  },
+  "profileName": "Name",
+  "@profileName": {
+    "description": "Name field label"
+  },
+
+  "homeTitle": "Home",
+  "@homeTitle": {
+    "description": "Home screen title"
+  },
+  "homeWelcome": "Welcome, {name}!",
+  "@homeWelcome": {
+    "description": "Welcome message with name",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "itemCount": "{count, plural, =0{No items} =1{1 item} other{{count} items}}",
+  "@itemCount": {
+    "description": "Item count with pluralization",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "dateToday": "Today",
+  "@dateToday": {
+    "description": "Today label"
+  },
+  "dateYesterday": "Yesterday",
+  "@dateYesterday": {
+    "description": "Yesterday label"
+  },
+  "dateFormat": "{date}",
+  "@dateFormat": {
+    "description": "Date format",
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMMMd"
+      }
+    }
+  }
+}

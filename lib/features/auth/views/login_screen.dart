@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_theme.dart';
@@ -10,7 +11,8 @@ class LoginScreen extends StatefulWidget {
     required this.error,
     required this.onClearError,
     required this.onLogin,
-    required this.onGoogleSignIn,
+    required this.onGetGoogleAuthUrl,
+    required this.onGoogleSignInWithCode,
     super.key,
   });
 
@@ -18,7 +20,12 @@ class LoginScreen extends StatefulWidget {
   final String? error;
   final VoidCallback onClearError;
   final Function(String email, String password) onLogin;
-  final VoidCallback onGoogleSignIn;
+  final Function({
+    required void Function(String url) onSuccess,
+    required void Function(String error) onError,
+  })
+  onGetGoogleAuthUrl;
+  final Function(String authorizationCode) onGoogleSignInWithCode;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -37,6 +44,30 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// Initiates Google OAuth flow
+  void _handleGoogleSignIn() {
+    widget.onGetGoogleAuthUrl(
+      onSuccess: (url) async {
+        // Open the OAuth URL in browser
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          // Note: In production, you'd handle the callback via deep linking
+          // The callback URL would call widget.onGoogleSignInWithCode(code)
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open browser for sign in')),
+          );
+        }
+      },
+      onError: (error) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Google Sign-In Error: $error')));
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,14 +84,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 // App Logo or Title
                 const Icon(Icons.lock, size: 80, color: AppTheme.primaryColor),
                 const SizedBox(height: AppTheme.largeSpacing),
-                Text('Welcome Back', style: AppTheme.headingStyle, textAlign: TextAlign.center),
+                Text(
+                  'Welcome Back',
+                  style: AppTheme.headingStyle,
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: AppTheme.extraLargeSpacing),
 
                 // Email Field
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email)),
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
@@ -81,7 +119,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
                       onPressed: () {
                         setState(() {
                           _obscurePassword = !_obscurePassword;
@@ -116,7 +158,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                if (widget.error != null) const SizedBox(height: AppTheme.mediumSpacing),
+                if (widget.error != null)
+                  const SizedBox(height: AppTheme.mediumSpacing),
 
                 // Login Button
                 SizedBox(
@@ -125,7 +168,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: widget.isLoading ? null : () => _handleLogin(),
                     child: widget.isLoading
                         ? const CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.onPrimaryColor),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppTheme.onPrimaryColor,
+                            ),
                           )
                         : const Text('Login'),
                   ),
@@ -137,10 +182,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const Expanded(child: Divider()),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppTheme.smallSpacing),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.smallSpacing,
+                      ),
                       child: Text(
                         'OR',
-                        style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                     const Expanded(child: Divider()),
@@ -152,16 +202,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   height: 50,
                   child: OutlinedButton.icon(
-                    onPressed: widget.isLoading ? null : widget.onGoogleSignIn,
+                    onPressed: widget.isLoading ? null : _handleGoogleSignIn,
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.grey),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.mediumRadius)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.mediumRadius,
+                        ),
+                      ),
                     ),
                     icon: Image.asset(
                       'assets/images/google_logo.png',
                       height: 24,
                       width: 24,
-                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.login, color: Colors.white),
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.login, color: Colors.white),
                     ),
                     label: const Text('Continue with Google'),
                   ),

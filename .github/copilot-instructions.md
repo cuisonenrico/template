@@ -4,6 +4,8 @@
 
 This is a **production-ready Flutter template** using **Async Redux** for state management, **GoRouter** for navigation, and **MVC architecture** with feature-based organization.
 
+**Backend Integration**: [cuisonenrico/be-template](https://github.com/cuisonenrico/be-template) - NestJS backend with OAuth, Supabase, R2 Storage, Redis.
+
 ### Core Patterns
 
 **State Management: Async Redux**
@@ -12,6 +14,15 @@ This is a **production-ready Flutter template** using **Async Redux** for state 
 - Actions in `controllers/` modify state; never mutate state directly
 - Always dispatch actions: `store.dispatch(YourAction())` or `context.dispatch(YourAction())`
 - Use `StoreConnector` for reactive UI updates
+
+**Authentication: OAuth-First (Firebase Optional)**
+- **Primary**: OAuth endpoints (`/oauth/*`) - no Firebase required
+- **Optional**: Firebase Auth can be enabled in `main_common.dart` (`useFirebaseAuth = true`)
+- Auth actions in [lib/features/auth/controllers/auth_actions.dart](lib/features/auth/controllers/auth_actions.dart)
+- Auth flow: `ApiService().oauthLogin()` → tokens stored → state updated → router redirects
+- Automatic token refresh on 401 errors with retry logic
+- Protected routes require `requiresAuth: true` in API calls
+- Full documentation in [AUTH.md](AUTH.md)
 
 **Local Database: Hive**
 - Fast, lightweight NoSQL database for Flutter
@@ -39,7 +50,7 @@ This is a **production-ready Flutter template** using **Async Redux** for state 
 - All routes in [lib/core/router/app_router.dart](lib/core/router/app_router.dart)
 - Use context extensions: `context.goToHome()`, `context.goToCounter()`, `context.goToLogin()`
 - Web-first design with clean URLs (`/home/counter`, `/login`)
-- Auth redirection handled at route level
+- Auth redirection handled at route level via AuthNotifier
 
 **Feature Structure (MVC)**
 ```
@@ -50,7 +61,14 @@ lib/features/<feature_name>/
 ```
 
 ## Critical Workflows
-Hive integration** - models with `@HiveType` annotations and adapter generation
+
+### Mason Brick Feature Generation
+```bash
+mason make feature --name your_feature
+```
+This automatically:
+- ✅ Complete MVC structure with models, actions, views, and state
+- ✅ **Hive integration** - models with `@HiveType` annotations and adapter generation
 - ✅ **Hive box creation** - automatic box registration in main_common.dart
 - ✅ **Offline-first CRUD** - actions with automatic Hive caching/syncing
 - ✅ **Route registration** in [lib/core/router/app_router.dart](lib/core/router/app_router.dart)
@@ -59,15 +77,10 @@ Hive integration** - models with `@HiveType` annotations and adapter generation
 - ✅ **API endpoints** added to [lib/core/constants/app_constants.dart](lib/core/constants/app_constants.dart)
 - ✅ **Test file** generation with action and model tests
 - ✅ **Build runner** executes automatically after generation
-```
-This automatically:
-- ✅ Complete MVC structure with models, actions, views, and state
-- ✅ **Route registration** in [lib/core/router/app_router.dart](lib/core/router/app_router.dart)
-- ✅ **State creation** in [lib/core/store/substates/your_feature_state.dart](lib/core/store/substates/)
-- ✅ **AppState update** - adds feature state to [lib/core/store/app_state.dart](lib/core/store/app_state.dart)
-- ✅ **API endpoints** added to [lib/core/constants/app_constants.dart](lib/core/constants/app_constants.dart)
-- ✅ **Test file** generation with action and model tests
-- ✅Create state file in `lib/core/store/substates/your_feature_state.dart`
+
+### Manual Feature Creation (if not using Mason)
+1. Create folder `lib/features/your_feature/` with `controllers/`, `models/`, `views/`
+2. Create state file in `lib/core/store/substates/your_feature_state.dart`
 3. Add substate to `AppState` in [lib/core/store/app_state.dart](lib/core/store/app_state.dart)
 4. Create `models/` with Freezed models
 5. Create `controllers/` with Redux actions extending `ReduxAction<AppState>`
@@ -91,20 +104,89 @@ Configures app name, bundle ID, API URL, environment files, and runs build_runne
 ```bash
 ./scripts/run.sh development    # Run with dev config
 ./scripts/build.sh production apk  # Build with prod config
-``
-4. Create `controllers/` with Redux actions extending `ReduxAction<AppState>`
-5. Create `views/` with screens using `StoreConnector`
-6. **Add route** to [lib/core/router/app_router.dart](lib/core/router/app_router.dart):
-   - Import connector: `import '../../features/your_feature/views/your_feature_connector.dart';`
-   - Add GoRoute with path, name, and pageBuilder
-   - Add extension methods: `goToYourFeature()` and `pushYourFeature()`
-7. Run code generation: `dart run build_runner build --delete-conflicting-outputs`
+```
+
+### Backend Integration (cuisonenrico/be-template)
+
+**Two Authentication Modes:**
+
+1. **OAuth Auth** (DEFAULT - uses `/oauth/*` endpoints):
+   - No Firebase required
+   - Backend handles all authentication
+   - Set `useFirebaseAuth = false` in `main_common.dart`
+
+2. **Firebase Auth** (uses `/auth/*` endpoints):
+   - Client authenticates with Firebase SDK
+   - Backend verifies Firebase ID tokens
+   - Set `useFirebaseAuth = true` in `main_common.dart`
+
+**OAuth Endpoints** (primary auth system):
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/oauth/register` | POST | No | Register with email/password |
+| `/oauth/login` | POST | No | Login with email/password |
+| `/oauth/providers` | GET | No | Get available OAuth providers |
+| `/oauth/authorize/:provider/url` | GET | No | Get OAuth URL for provider |
+| `/oauth/callback/:provider` | GET | No | Handle OAuth callback |
+| `/oauth/refresh` | POST | No | Refresh tokens |
+| `/oauth/logout` | POST | Yes | Logout (single session) |
+| `/oauth/logout/all` | POST | Yes | Logout from all devices |
+| `/oauth/me` | GET | Yes | Get user with linked accounts |
+| `/oauth/sessions` | GET | Yes | Get active sessions |
+| `/oauth/sessions/:id` | DELETE | Yes | Revoke specific session |
+| `/oauth/link/:provider` | GET | Yes | Link OAuth provider |
+| `/oauth/accounts/:provider` | DELETE | Yes | Unlink OAuth provider |
+| `/oauth/me/password` | POST | Yes | Change password |
+| `/oauth/me` | DELETE | Yes | Delete account |
+
+**Firebase Auth Endpoints** (optional):
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/health` | GET | No | Health check |
+| `/auth/verify` | POST | No | Verify Firebase token |
+| `/auth/me` | GET | Yes | Get current user profile |
+| `/auth/me` | PUT | Yes | Update current user |
+| `/auth/me` | DELETE | Yes | Delete current user |
+| `/auth/revoke-tokens` | POST | Yes | Revoke all tokens |
+| `/users` | CRUD | Yes | User management |
+
+**Using OAuth Auth (default):**
+```dart
+// 1. Login via OAuth endpoint
+await context.dispatch(LoginAction(email: email, password: password));
+
+// 2. Or use Google OAuth
+await context.dispatch(GetGoogleAuthUrlAction(
+  onSuccess: (url) => launchUrl(Uri.parse(url)),
+  onError: (error) => showError(error),
+));
+// After browser callback with code:
+await context.dispatch(GoogleSignInAction(authorizationCode: code));
+
+// 3. API calls auto-include stored token
+final response = await ApiService().get('/users', requiresAuth: true);
+```
+
+**Using Firebase Auth (optional):**
+```dart
+// 1. Enable Firebase in main_common.dart
+// const bool useFirebaseAuth = true;
+
+// 2. Login via Firebase
+await FirebaseAuthService().signInWithEmail(email, password);
+
+// 3. API calls auto-include Firebase token
+final response = await ApiService().get('/users', requiresAuth: true);
+```
 
 ### API Integration Pattern
 
 See [lib/features/auth/controllers/auth_actions.dart](lib/features/auth/controllers/auth_actions.dart) for reference:
 - Use `ApiService()` singleton for HTTP calls
-- Store tokens via `StorageHelper` (SharedPreferences wrapper)
+- Tokens automatically included when `requiresAuth: true`
+- **Automatic token refresh** on 401 errors with retry logic
 - Actions dispatch loading/error states: `SetAuthLoadingAction`, `SetAuthErrorAction`
 - API responses expect `{success, data, message}` structure
 
@@ -144,7 +226,17 @@ await box.deleteAt(index);        // Delete
 **Import Organization**
 - Group imports: Flutter SDK → packages → project files
 - Use relative imports within features: `'../models/auth_models.dart'`
-- Initial setup (one-time)
+
+**Environment Configuration**
+- Environment files: `.env.development`, `.env.staging`, `.env.production`
+- Access config via `EnvConfig` class in [lib/core/config/env_config.dart](lib/core/config/env_config.dart)
+- Run with: `flutter run --dart-define-from-file=.env.development`
+- Or use: `./scripts/run.sh development`
+
+## Common Commands
+
+```bash
+# Initial setup (one-time)
 ./scripts/setup.sh
 
 # Run with environment
@@ -174,35 +266,6 @@ flutter analyze
 # Run tests
 flutter test
 
-# ReEnvironment:** [lib/core/config/env_config.dart](lib/core/config/env_config.dart)
-- **Auth example:** [lib/features/auth/controllers/auth_actions.dart](lib/features/auth/controllers/auth_actions.dart)
-- **Counter example:** [lib/features/counter/](lib/features/counter/)
-- **Setup script:** [scripts/setup.sh](scripts/setup.sh)
-- **Development guide:** [DEVELOPMENT.md](DEVELOPMENT.mdpp"
-dart run rename setBundleId --targets ios,android --value "com.company.app"
-```
- (Mason does this automatically)
-- **Don't** access SharedPreferences directly; use `StorageHelper`
-- **Don't** manually add state to AppState; Mason brick does this automatically
-- **Do** dispatch loading/error actions in async operations
-- **Do** handle auth token refresh in `ApiService` for 401 responses
-- **Do** use Mason brick for new features - it handles all integration automatically
-- **Do** use environment-specific scripts for running and buildingction`
-- Access config via `EnvConfig` class in [lib/core/config/env_config.dart](lib/core/config/env_config.dart)
-- Run with: `flutter run --dart-define-from-file=.env.development`
-- Or use: `./scripts/run.sh development
-# Watch mode for continuous generation
-dart run build_runner watch --delete-conflicting-outputs
-
-# Run app
-flutter run
-
-# Analyze code
-flutter analyze
-
-# Run tests
-flutter test
-
 # Rename app
 dart run rename setAppName --targets ios,android,web --value "Your App"
 dart run rename setBundleId --targets ios,android --value "com.company.app"
@@ -218,6 +281,7 @@ dart run rename setBundleId --targets ios,android --value "com.company.app"
 - **Routing:** [lib/core/router/app_router.dart](lib/core/router/app_router.dart)
 - **Theme:** [lib/core/constants/app_theme.dart](lib/core/constants/app_theme.dart)
 - **Environment:** [lib/core/config/env_config.dart](lib/core/config/env_config.dart)
+- **Auth documentation:** [AUTH.md](AUTH.md)
 - **Auth example:** [lib/features/auth/controllers/auth_actions.dart](lib/features/auth/controllers/auth_actions.dart)
 - **Counter example:** [lib/features/counter/](lib/features/counter/)
 - **Notifications guide:** [NOTIFICATIONS.md](NOTIFICATIONS.md)
@@ -232,8 +296,6 @@ dart run rename setBundleId --targets ios,android --value "com.company.app"
 - **Don't** access SharedPreferences directly; use `StorageHelper`
 - **Don't** manually add state to AppState; Mason brick does this automatically
 - **Do** dispatch loading/error actions in async operations
-- **Do** handle auth token refresh in `ApiService` for 401 responses
 - **Do** use Mason brick for new features - it handles all integration automatically
 - **Do** use environment-specific scripts for running and building
-- **Do** dispatch loading/error actions in async operations
-- **Do** handle auth token refresh in `ApiService` for 401 responses
+- **Do** rely on automatic token refresh for 401 responses (handled by ApiService)

@@ -2,13 +2,13 @@ import 'package:async_redux/async_redux.dart';
 import '../../../core/store/app_state.dart';
 import '../../../core/store/substates/auth_state.dart';
 import '../../../core/services/api_service.dart';
-import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/utils/storage_helper.dart';
 import '../../../core/utils/app_logger.dart';
-import '../../../core/constants/app_constants.dart';
 import '../models/auth_models.dart' as auth_models;
 
-// Login Action with Firebase
+// ============================================
+// OAuth Login Action (Primary - No Firebase Required)
+// ============================================
 class LoginAction extends ReduxAction<AppState> {
   final String email;
   final String password;
@@ -21,179 +21,61 @@ class LoginAction extends ReduxAction<AppState> {
     dispatch(SetAuthLoadingAction(isLoading: true));
 
     try {
-      // Sign in with Firebase
-      final firebaseResult = await FirebaseAuthService()
-          .signInWithEmailPassword(email: email, password: password);
-
-      if (!firebaseResult.success) {
-        dispatch(
-          SetAuthErrorAction(
-            error: firebaseResult.errorMessage ?? 'Login failed',
-          ),
-        );
-        return null;
-      }
-
-      // Get Firebase ID token for backend authentication
-      final idToken = await FirebaseAuthService().getIdToken();
-
-      if (idToken == null) {
-        dispatch(
-          SetAuthErrorAction(error: 'Failed to get authentication token'),
-        );
-        return null;
-      }
-
-      // Optionally: Authenticate with your backend API
-      // This syncs Firebase user with your backend
       final apiService = ApiService();
-      final response = await apiService.post(AppConstants.loginEndpoint, {
-        'firebase_token': idToken,
-        'email': email,
-      });
+      final response = await apiService.oauthLogin(email, password);
 
-      auth_models.User user;
-      String? backendAccessToken;
-      String? backendRefreshToken;
-
-      if (response.success && response.data != null) {
-        // Use backend user data if available
-        final authResponse = auth_models.AuthResponse.fromJson(response.data!);
-        user = authResponse.user;
-        backendAccessToken = authResponse.accessToken;
-        backendRefreshToken = authResponse.refreshToken;
-      } else {
-        // Fallback to Firebase user data
-        user = auth_models.User(
-          id: firebaseResult.userId ?? '',
-          email: firebaseResult.email ?? email,
-          name: firebaseResult.displayName,
-          avatar: firebaseResult.photoUrl,
-        );
+      if (!response.success) {
+        dispatch(SetAuthErrorAction(error: response.message ?? 'Login failed'));
+        return null;
       }
 
-      // Store tokens and user data
-      await StorageHelper.saveAccessToken(backendAccessToken ?? idToken);
-      if (backendRefreshToken != null) {
-        await StorageHelper.saveRefreshToken(backendRefreshToken);
+      // Extract user from response
+      final userData = response.data?['user'];
+      if (userData == null) {
+        dispatch(SetAuthErrorAction(error: 'Invalid response from server'));
+        return null;
       }
+
+      final user = auth_models.User(
+        id: userData['id'] ?? '',
+        email: userData['email'] ?? email,
+        name: userData['name'],
+        avatar: userData['avatarUrl'],
+      );
+
+      // Tokens are automatically stored by oauthLogin
+      final accessToken = response.data?['accessToken'];
+      final refreshToken = response.data?['refreshToken'];
+
       await StorageHelper.saveUserData(user.toJson());
       await StorageHelper.setLoggedIn(true);
 
-      logger.info('User logged in successfully', {
+      logger.info('User logged in successfully via OAuth', {
         'userId': user.id,
         'email': user.email,
       });
 
-      // Update state
       return state.copyWith(
         auth: state.auth.copyWith(
           isLoggedIn: true,
           isLoading: false,
           user: user,
-          accessToken: backendAccessToken ?? idToken,
-          refreshToken: backendRefreshToken,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
           error: null,
         ),
       );
     } catch (e, stackTrace) {
-      AppLogger().error('Login failed', e, stackTrace);
+      AppLogger().error('OAuth login failed', e, stackTrace);
       dispatch(SetAuthErrorAction(error: e.toString()));
       return null;
     }
   }
 }
 
-// Google Sign In Action
-class GoogleSignInAction extends ReduxAction<AppState> {
-  @override
-  Future<AppState?> reduce() async {
-    final logger = AppLogger();
-    dispatch(SetAuthLoadingAction(isLoading: true));
-
-    try {
-      // Sign in with Google
-      final firebaseResult = await FirebaseAuthService().signInWithGoogle();
-
-      if (!firebaseResult.success) {
-        dispatch(
-          SetAuthErrorAction(
-            error: firebaseResult.errorMessage ?? 'Google sign in failed',
-          ),
-        );
-        return null;
-      }
-
-      // Get Firebase ID token
-      final idToken = await FirebaseAuthService().getIdToken();
-
-      if (idToken == null) {
-        dispatch(
-          SetAuthErrorAction(error: 'Failed to get authentication token'),
-        );
-        return null;
-      }
-
-      // Optionally: Sync with your backend
-      final apiService = ApiService();
-      final response = await apiService.post(AppConstants.loginEndpoint, {
-        'firebase_token': idToken,
-        'email': firebaseResult.email,
-        'provider': 'google',
-      });
-
-      auth_models.User user;
-      String? backendAccessToken;
-      String? backendRefreshToken;
-
-      if (response.success && response.data != null) {
-        final authResponse = auth_models.AuthResponse.fromJson(response.data!);
-        user = authResponse.user;
-        backendAccessToken = authResponse.accessToken;
-        backendRefreshToken = authResponse.refreshToken;
-      } else {
-        // Fallback to Firebase user data
-        user = auth_models.User(
-          id: firebaseResult.userId ?? '',
-          email: firebaseResult.email ?? '',
-          name: firebaseResult.displayName,
-          avatar: firebaseResult.photoUrl,
-        );
-      }
-
-      // Store tokens and user data
-      await StorageHelper.saveAccessToken(backendAccessToken ?? idToken);
-      if (backendRefreshToken != null) {
-        await StorageHelper.saveRefreshToken(backendRefreshToken);
-      }
-      await StorageHelper.saveUserData(user.toJson());
-      await StorageHelper.setLoggedIn(true);
-
-      logger.info('User signed in with Google', {
-        'userId': user.id,
-        'email': user.email,
-      });
-
-      // Update state
-      return state.copyWith(
-        auth: state.auth.copyWith(
-          isLoggedIn: true,
-          isLoading: false,
-          user: user,
-          accessToken: backendAccessToken ?? idToken,
-          refreshToken: backendRefreshToken,
-          error: null,
-        ),
-      );
-    } catch (e, stackTrace) {
-      AppLogger().error('Google sign in failed', e, stackTrace);
-      dispatch(SetAuthErrorAction(error: e.toString()));
-      return null;
-    }
-  }
-}
-
-// Register Action with Firebase
+// ============================================
+// OAuth Register Action (Primary - No Firebase Required)
+// ============================================
 class RegisterAction extends ReduxAction<AppState> {
   final String email;
   final String password;
@@ -207,92 +89,169 @@ class RegisterAction extends ReduxAction<AppState> {
     dispatch(SetAuthLoadingAction(isLoading: true));
 
     try {
-      // Sign up with Firebase
-      final firebaseResult = await FirebaseAuthService()
-          .signUpWithEmailPassword(
-            email: email,
-            password: password,
-            displayName: name,
-          );
-
-      if (!firebaseResult.success) {
-        dispatch(
-          SetAuthErrorAction(
-            error: firebaseResult.errorMessage ?? 'Registration failed',
-          ),
-        );
-        return null;
-      }
-
-      // Get Firebase ID token
-      final idToken = await FirebaseAuthService().getIdToken();
-
-      if (idToken == null) {
-        dispatch(
-          SetAuthErrorAction(error: 'Failed to get authentication token'),
-        );
-        return null;
-      }
-
-      // Optionally: Register with your backend
       final apiService = ApiService();
-      final response = await apiService.post(AppConstants.registerEndpoint, {
-        'firebase_token': idToken,
-        'email': email,
-        'name': name,
-      });
+      final response = await apiService.oauthRegister(
+        email,
+        password,
+        name: name,
+      );
 
-      auth_models.User user;
-      String? backendAccessToken;
-      String? backendRefreshToken;
-
-      if (response.success && response.data != null) {
-        final authResponse = auth_models.AuthResponse.fromJson(response.data!);
-        user = authResponse.user;
-        backendAccessToken = authResponse.accessToken;
-        backendRefreshToken = authResponse.refreshToken;
-      } else {
-        user = auth_models.User(
-          id: firebaseResult.userId ?? '',
-          email: firebaseResult.email ?? email,
-          name: firebaseResult.displayName ?? name,
-          avatar: firebaseResult.photoUrl,
+      if (!response.success) {
+        dispatch(
+          SetAuthErrorAction(error: response.message ?? 'Registration failed'),
         );
+        return null;
       }
 
-      // Store tokens and user data
-      await StorageHelper.saveAccessToken(backendAccessToken ?? idToken);
-      if (backendRefreshToken != null) {
-        await StorageHelper.saveRefreshToken(backendRefreshToken);
+      // Extract user from response
+      final userData = response.data?['user'];
+      if (userData == null) {
+        dispatch(SetAuthErrorAction(error: 'Invalid response from server'));
+        return null;
       }
+
+      final user = auth_models.User(
+        id: userData['id'] ?? '',
+        email: userData['email'] ?? email,
+        name: userData['name'] ?? name,
+        avatar: userData['avatarUrl'],
+      );
+
+      // Tokens are automatically stored by oauthRegister
+      final accessToken = response.data?['accessToken'];
+      final refreshToken = response.data?['refreshToken'];
+
       await StorageHelper.saveUserData(user.toJson());
       await StorageHelper.setLoggedIn(true);
 
-      logger.info('User registered successfully', {
+      logger.info('User registered successfully via OAuth', {
         'userId': user.id,
         'email': user.email,
       });
 
-      // Update state
       return state.copyWith(
         auth: state.auth.copyWith(
           isLoggedIn: true,
           isLoading: false,
           user: user,
-          accessToken: backendAccessToken ?? idToken,
-          refreshToken: backendRefreshToken,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
           error: null,
         ),
       );
     } catch (e, stackTrace) {
-      AppLogger().error('Registration failed', e, stackTrace);
+      AppLogger().error('OAuth registration failed', e, stackTrace);
       dispatch(SetAuthErrorAction(error: e.toString()));
       return null;
     }
   }
 }
 
-// Logout Action with Firebase
+// ============================================
+// OAuth Google Sign In Action
+// Uses backend OAuth flow instead of Firebase
+// ============================================
+class GoogleSignInAction extends ReduxAction<AppState> {
+  final String authorizationCode;
+
+  GoogleSignInAction({required this.authorizationCode});
+
+  @override
+  Future<AppState?> reduce() async {
+    final logger = AppLogger();
+    dispatch(SetAuthLoadingAction(isLoading: true));
+
+    try {
+      final apiService = ApiService();
+      final response = await apiService.oauthCallback(
+        'google',
+        authorizationCode,
+      );
+
+      if (!response.success) {
+        dispatch(
+          SetAuthErrorAction(
+            error: response.message ?? 'Google sign in failed',
+          ),
+        );
+        return null;
+      }
+
+      // Extract user from response
+      final userData = response.data?['user'];
+      if (userData == null) {
+        dispatch(SetAuthErrorAction(error: 'Invalid response from server'));
+        return null;
+      }
+
+      final user = auth_models.User(
+        id: userData['id'] ?? '',
+        email: userData['email'] ?? '',
+        name: userData['name'],
+        avatar: userData['avatarUrl'],
+      );
+
+      // Tokens are automatically stored by oauthCallback
+      final accessToken = response.data?['accessToken'];
+      final refreshToken = response.data?['refreshToken'];
+
+      await StorageHelper.saveUserData(user.toJson());
+      await StorageHelper.setLoggedIn(true);
+
+      logger.info('User signed in with Google via OAuth', {
+        'userId': user.id,
+        'email': user.email,
+      });
+
+      return state.copyWith(
+        auth: state.auth.copyWith(
+          isLoggedIn: true,
+          isLoading: false,
+          user: user,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          error: null,
+        ),
+      );
+    } catch (e, stackTrace) {
+      AppLogger().error('Google OAuth sign in failed', e, stackTrace);
+      dispatch(SetAuthErrorAction(error: e.toString()));
+      return null;
+    }
+  }
+}
+
+// ============================================
+// Get OAuth URL Action (for initiating Google sign in)
+// ============================================
+class GetOAuthUrlAction extends ReduxAction<AppState> {
+  final String provider;
+  final void Function(String url)? onSuccess;
+  final void Function(String error)? onError;
+
+  GetOAuthUrlAction({this.provider = 'google', this.onSuccess, this.onError});
+
+  @override
+  Future<AppState?> reduce() async {
+    try {
+      final apiService = ApiService();
+      final response = await apiService.getOAuthUrl(provider);
+
+      if (response.success && response.data?['url'] != null) {
+        onSuccess?.call(response.data!['url']);
+      } else {
+        onError?.call(response.message ?? 'Failed to get OAuth URL');
+      }
+    } catch (e) {
+      onError?.call(e.toString());
+    }
+    return null;
+  }
+}
+
+// ============================================
+// OAuth Logout Action
+// ============================================
 class LogoutAction extends ReduxAction<AppState> {
   @override
   Future<AppState?> reduce() async {
@@ -300,21 +259,12 @@ class LogoutAction extends ReduxAction<AppState> {
     dispatch(SetAuthLoadingAction(isLoading: true));
 
     try {
-      // Logout from Firebase
-      await FirebaseAuthService().signOut();
-
-      // Optionally: Logout from backend
       final apiService = ApiService();
-      await apiService.post(
-        AppConstants.logoutEndpoint,
-        {},
-        requiresAuth: true,
-      );
-
-      logger.info('User logged out');
+      await apiService.oauthLogout();
+      logger.info('User logged out via OAuth');
     } catch (e, stackTrace) {
-      logger.error('Logout error', e, stackTrace);
-      // Continue with local logout even if Firebase/server logout fails
+      logger.error('OAuth logout error', e, stackTrace);
+      // Continue with local logout even if server logout fails
     }
 
     // Clear local storage
@@ -325,7 +275,31 @@ class LogoutAction extends ReduxAction<AppState> {
   }
 }
 
+// ============================================
+// Logout from All Devices Action
+// ============================================
+class LogoutAllDevicesAction extends ReduxAction<AppState> {
+  @override
+  Future<AppState?> reduce() async {
+    final logger = AppLogger();
+    dispatch(SetAuthLoadingAction(isLoading: true));
+
+    try {
+      final apiService = ApiService();
+      await apiService.oauthLogoutAll();
+      logger.info('User logged out from all devices');
+    } catch (e, stackTrace) {
+      logger.error('Logout all devices error', e, stackTrace);
+    }
+
+    await StorageHelper.clearUserSession();
+    return state.copyWith(auth: const AuthState());
+  }
+}
+
+// ============================================
 // Check Auth Status Action
+// ============================================
 class CheckAuthStatusAction extends ReduxAction<AppState> {
   @override
   Future<AppState?> reduce() async {
@@ -338,6 +312,18 @@ class CheckAuthStatusAction extends ReduxAction<AppState> {
 
       if (accessToken != null && userData != null) {
         final user = auth_models.User.fromJson(userData);
+
+        // Optionally verify token is still valid
+        try {
+          final apiService = ApiService();
+          final response = await apiService.getOAuthProfile();
+          if (!response.success) {
+            // Token invalid, try refresh
+            dispatch(RefreshTokenAction());
+          }
+        } catch (_) {
+          // Continue with cached data if network unavailable
+        }
 
         return state.copyWith(
           auth: state.auth.copyWith(
@@ -354,32 +340,28 @@ class CheckAuthStatusAction extends ReduxAction<AppState> {
   }
 }
 
+// ============================================
 // Refresh Token Action
+// ============================================
 class RefreshTokenAction extends ReduxAction<AppState> {
   @override
   Future<AppState?> reduce() async {
     try {
-      final refreshToken = await StorageHelper.getRefreshToken();
-
-      if (refreshToken == null) {
-        dispatch(LogoutAction());
-        return null;
-      }
-
       final apiService = ApiService();
-      final response = await apiService.post(
-        AppConstants.refreshTokenEndpoint,
-        {'refresh_token': refreshToken},
-      );
+      final response = await apiService.oauthRefreshToken();
 
       if (response.success && response.data != null) {
-        final newAccessToken = response.data!['access_token'];
-        await StorageHelper.saveAccessToken(newAccessToken);
+        final newAccessToken = response.data!['accessToken'];
+        final newRefreshToken = response.data!['refreshToken'];
 
         return state.copyWith(
-          auth: state.auth.copyWith(accessToken: newAccessToken),
+          auth: state.auth.copyWith(
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+          ),
         );
       } else {
+        // Refresh failed, force logout
         dispatch(LogoutAction());
         return null;
       }
@@ -390,7 +372,129 @@ class RefreshTokenAction extends ReduxAction<AppState> {
   }
 }
 
+// ============================================
+// Change Password Action
+// ============================================
+class ChangePasswordAction extends ReduxAction<AppState> {
+  final String currentPassword;
+  final String newPassword;
+
+  ChangePasswordAction({
+    required this.currentPassword,
+    required this.newPassword,
+  });
+
+  @override
+  Future<AppState?> reduce() async {
+    dispatch(SetAuthLoadingAction(isLoading: true));
+
+    try {
+      final apiService = ApiService();
+      final response = await apiService.changePassword(
+        currentPassword,
+        newPassword,
+      );
+
+      dispatch(SetAuthLoadingAction(isLoading: false));
+
+      if (!response.success) {
+        dispatch(
+          SetAuthErrorAction(
+            error: response.message ?? 'Failed to change password',
+          ),
+        );
+      }
+
+      return null;
+    } catch (e, stackTrace) {
+      AppLogger().error('Change password failed', e, stackTrace);
+      dispatch(SetAuthErrorAction(error: e.toString()));
+      return null;
+    }
+  }
+}
+
+// ============================================
+// Delete Account Action
+// ============================================
+class DeleteAccountAction extends ReduxAction<AppState> {
+  @override
+  Future<AppState?> reduce() async {
+    dispatch(SetAuthLoadingAction(isLoading: true));
+
+    try {
+      final apiService = ApiService();
+      final response = await apiService.deleteOAuthAccount();
+
+      if (response.success) {
+        await StorageHelper.clearUserSession();
+        return state.copyWith(auth: const AuthState());
+      } else {
+        dispatch(
+          SetAuthErrorAction(
+            error: response.message ?? 'Failed to delete account',
+          ),
+        );
+        return null;
+      }
+    } catch (e, stackTrace) {
+      AppLogger().error('Delete account failed', e, stackTrace);
+      dispatch(SetAuthErrorAction(error: e.toString()));
+      return null;
+    }
+  }
+}
+
+// ============================================
+// Get Sessions Action
+// ============================================
+class GetSessionsAction extends ReduxAction<AppState> {
+  final void Function(List<dynamic> sessions)? onSuccess;
+  final void Function(String error)? onError;
+
+  GetSessionsAction({this.onSuccess, this.onError});
+
+  @override
+  Future<AppState?> reduce() async {
+    try {
+      final apiService = ApiService();
+      final response = await apiService.getOAuthSessions();
+
+      if (response.success && response.data?['sessions'] != null) {
+        onSuccess?.call(response.data!['sessions']);
+      } else {
+        onError?.call(response.message ?? 'Failed to get sessions');
+      }
+    } catch (e) {
+      onError?.call(e.toString());
+    }
+    return null;
+  }
+}
+
+// ============================================
+// Revoke Session Action
+// ============================================
+class RevokeSessionAction extends ReduxAction<AppState> {
+  final String sessionId;
+
+  RevokeSessionAction({required this.sessionId});
+
+  @override
+  Future<AppState?> reduce() async {
+    try {
+      final apiService = ApiService();
+      await apiService.revokeOAuthSession(sessionId);
+    } catch (e) {
+      AppLogger().error('Failed to revoke session', e, null);
+    }
+    return null;
+  }
+}
+
+// ============================================
 // Helper Actions
+// ============================================
 class SetAuthLoadingAction extends ReduxAction<AppState> {
   final bool isLoading;
 
